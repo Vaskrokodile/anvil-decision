@@ -1,0 +1,217 @@
+@import "@fontsource/space-grotesk/400.css";
+@import "@fontsource/space-grotesk/500.css";
+@import "@fontsource/space-grotesk/600.css";
+@import "@fontsource/space-grotesk/700.css";
+@import "@fontsource/instrument-serif/400.css";
+@import "@fontsource/instrument-serif/400-italic.css";
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/500.css";
+@import "tailwindcss";
+
+/* Anvil v2 — "aurora lab". Dark aurora hero on a paper-white body.
+   Monochrome + ONE secondary: aurora blue. */
+@theme {
+  /* light content surface */
+  --color-paper: #f4f5f2;
+  --color-card: #fbfbf9;
+  --color-line: #e2e4de;
+  --color-line-soft: #eceee8;
+  --color-fg: #0d1219;
+  --color-dim: #57606d;
+  --color-faint: #a0a7b0;
+
+  /* dark hero surface */
+  --color-abyss: #05070f;
+  --color-navy: #0a1526;
+  --color-ice: #e8edf5;
+  --color-ice-dim: #9aa8bc;
+  --color-ice-faint: #566274;
+  --color-ice-line: #1d2a40;
+
+  /* the single accent — aurora blue */
+  --color-blue: #3b82f6;
+  --color-blue-bright: #60a5fa;
+  --color-blue-deep: #1d4ed8;
+  --color-blue-dim: #3b82f61f;
+
+  --font-sans: "Space Grotesk", system-ui, sans-serif;
+  --font-display: "Instrument Serif", Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--color-blue);
+  color: #fff;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-paper);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-line);
+  border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-faint);
+}
+
+.serif-i {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+}
+
+/* ------------------------------------------------------------------ */
+/* Aurora hero scene — layered CSS + the three.js star layer on top.   */
+/* ------------------------------------------------------------------ */
+
+.aurora-sky {
+  background:
+    /* aurora dome rising from below the planet */
+    radial-gradient(ellipse 110% 68% at 50% 112%, var(--color-aurora2, #38bdf8) 0%, transparent 62%),
+    radial-gradient(ellipse 85% 55% at 50% 108%, var(--color-aurora1, #3b82f6) 8%, transparent 55%),
+    /* sky falloff */
+    linear-gradient(to bottom, #040710 0%, #071226 42%, #0a1c38 66%, transparent 100%);
+}
+
+.aurora-dome {
+  /* the glowing band hugging the planet horizon */
+  background: radial-gradient(
+    ellipse 88% 46% at 50% 104%,
+    #7dd3fc 0%,
+    #38bdf8 22%,
+    #2563eb 40%,
+    transparent 68%
+  );
+  filter: blur(2px);
+}
+
+.planet {
+  /* dark sphere silhouette — the "metal" */
+  background: radial-gradient(
+    ellipse 72% 60% at 50% 118%,
+    #0c1522 0%,
+    #070d18 46%,
+    #050810 100%
+  );
+}
+
+.dot-matrix {
+  /* star-field grid stamped on the upper sky */
+  background-image: radial-gradient(circle, rgba(232, 237, 245, 0.16) 1px, transparent 1.2px);
+  background-size: 22px 22px;
+  mask-image: linear-gradient(to bottom, black 0%, black 45%, transparent 78%);
+  -webkit-mask-image: linear-gradient(to bottom, black 0%, black 45%, transparent 78%);
+}
+
+@keyframes aurora-shift {
+  0%,
+  100% {
+    transform: translateX(-2%) scaleY(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: translateX(2%) scaleY(1.06);
+    opacity: 1;
+  }
+}
+
+.aurora-dome {
+  animation: aurora-shift 14s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aurora-dome {
+    animation: none;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* card hover → aurora fill (the reference's highlighted-card trick) */
+.card-aurora {
+  position: relative;
+  isolation: isolate;
+}
+.card-aurora::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(
+    ellipse 90% 80% at 50% 110%,
+    #38bdf8 0%,
+    #2563eb 45%,
+    #0a1c38 100%
+  );
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.card-aurora:hover::before,
+.card-aurora.is-active::before {
+  opacity: 1;
+}
+.card-aurora:hover,
+.card-aurora.is-active {
+  border-color: transparent;
+}
+.card-aurora:hover *,
+.card-aurora.is-active * {
+  color: #eaf2ff !important;
+  border-color: rgba(234, 242, 255, 0.35) !important;
+}
+
+/* faint engineering grid */
+.grid-lines {
+  background-image:
+    linear-gradient(to right, var(--color-line-soft) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-line-soft) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* measuring-instrument tick marks */
+.tick-rule {
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--color-line) 0,
+    var(--color-line) 1px,
+    transparent 1px,
+    transparent 14px
+  );
+}
+
+/* hatched fill — "over budget" state */
+.bar-over {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--color-fg) 0 2px,
+    transparent 2px 6px
+  );
+}
+
+:focus-visible {
+  outline: 1.5px solid var(--color-blue);
+  outline-offset: 2px;
+}
