@@ -1,0 +1,12 @@
+{"id":"cls-0006","label":"insufficient","sure":false,"reason":"Raw unadjusted mean gap, Grades 6-8 at two schools; population narrower than claim."}
+{"id":"cls-0063","label":"supported","sure":true,"reason":"Recall covers all units made 1 Jan to 30 Apr 2024, i.e. before 1 May."}
+{"id":"cls-0074","label":"insufficient","sure":false,"reason":"19 of 30 plots affected; 'all plots' and drought cause not established."}
+{"id":"cls-0083","label":"insufficient","sure":true,"reason":"Estimate 18% (CI 14 to 22) does not reach 20%; comparison confounded by insulation."}
+{"id":"cls-0137","label":"supported","sure":true,"reason":"Storage was 68, 63 and 61 percent on the three August dates, all above 60."}
+{"id":"cls-0148","label":"contradicted","sure":false,"reason":"Logs show unauthorised queries against 2,300 customer records; exposure occurred, scope pending."}
+{"id":"cls-0218","label":"contradicted","sure":false,"reason":"Native crayfish still present at 8 of 27 sites; displacement not catchment-wide."}
+{"id":"cls-0236","label":"insufficient","sure":false,"reason":"Raw score gap with response and age confounds; passage says difference may be selection."}
+{"id":"cls-0253","label":"insufficient","sure":false,"reason":"Click-rate gap exists but template-familiarity confound; 'shows that' inference unsettled."}
+{"id":"cls-0259","label":"insufficient","sure":true,"reason":"Non-significant 0.2-point difference; superiority not established, nor contradicted."}
+{"id":"cls-0271","label":"insufficient","sure":false,"reason":"Thinned plots grew faster, but treatment years differ across sample; period mismatch."}
+{"id":"cls-0344","label":"insufficient","sure":false,"reason":"21,740 excludes school groups recorded separately; total over 30,000 not established."}

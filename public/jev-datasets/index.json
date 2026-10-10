@@ -1,0 +1,213 @@
+{
+  "format": "OpenJEV-shaped training records: {id, split, state, questions, answers}. Request = state + questions; target = answers. Choice answers carry probabilities+confidence; score answers carry score+legend+probabilities+confidence; noul answers carry a yes-probability. Targets are label-smoothed (gold 0.9). Confidence = 1 - H(p)/ln K.",
+  "generatedBy": "scripts/datasets/to-jev.mts",
+  "seed": 1337,
+  "split": "80/20 stratified",
+  "datasets": [
+    {
+      "file": "jev-refund-decision.jsonl",
+      "name": "jev-refund-decision",
+      "description": "Refund requests: approve, deny, or escalate under the written policy.",
+      "question": {
+        "qid": "decision",
+        "type": "choice"
+      },
+      "records": 399,
+      "train": 320,
+      "val": 79,
+      "labels": [
+        "approve",
+        "deny",
+        "escalate"
+      ],
+      "source": "jev-refund-decision.jsonl"
+    },
+    {
+      "file": "jev-contract-risk.jsonl",
+      "name": "jev-contract-risk",
+      "description": "Contract clauses rated by risk to the party the reviewer represents.",
+      "question": {
+        "qid": "risk",
+        "type": "score"
+      },
+      "records": 342,
+      "train": 276,
+      "val": 66,
+      "labels": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "source": "jev-contract-risk.jsonl"
+    },
+    {
+      "file": "jev-claim-support.jsonl",
+      "name": "jev-claim-support",
+      "description": "Claim plus evidence passage: supported, contradicted, or insufficient.",
+      "question": {
+        "qid": "support",
+        "type": "choice"
+      },
+      "records": 392,
+      "train": 315,
+      "val": 77,
+      "labels": [
+        "supported",
+        "contradicted",
+        "insufficient"
+      ],
+      "source": "jev-claim-support.jsonl"
+    },
+    {
+      "file": "jev-moderation-threads.jsonl",
+      "name": "jev-moderation-threads",
+      "description": "Comment threads; the target (last) comment rated safe, borderline, or unsafe.",
+      "question": {
+        "qid": "severity",
+        "type": "choice"
+      },
+      "records": 299,
+      "train": 241,
+      "val": 58,
+      "labels": [
+        "safe",
+        "borderline",
+        "unsafe"
+      ],
+      "source": "jev-moderation-threads.jsonl"
+    },
+    {
+      "file": "jev-urgency.jsonl",
+      "name": "jev-urgency",
+      "description": "Long case threads graded by how soon a human must act.",
+      "question": {
+        "qid": "urgency",
+        "type": "score"
+      },
+      "records": 2500,
+      "train": 2000,
+      "val": 500,
+      "labels": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "source": "jev-urgency.jsonl"
+    },
+    {
+      "file": "jev-case-routing.jsonl",
+      "name": "jev-case-routing",
+      "description": "Long support threads routed to the owning team.",
+      "question": {
+        "qid": "team",
+        "type": "choice"
+      },
+      "records": 2502,
+      "train": 2004,
+      "val": 498,
+      "labels": [
+        "billing",
+        "technical",
+        "shipping",
+        "account_security",
+        "sales",
+        "trust_safety"
+      ],
+      "source": "jev-case-routing.jsonl"
+    },
+    {
+      "file": "jev-policy-check.jsonl",
+      "name": "jev-policy-check",
+      "description": "Policy plus agent transcript: did the last action comply?",
+      "question": {
+        "qid": "compliance",
+        "type": "choice"
+      },
+      "records": 2500,
+      "train": 2002,
+      "val": 498,
+      "labels": [
+        "compliant",
+        "violation",
+        "needs_review"
+      ],
+      "source": "jev-policy-check.jsonl"
+    },
+    {
+      "file": "jev-grounding.jsonl",
+      "name": "jev-grounding",
+      "description": "Sources plus an answer: grounded, partially grounded, or ungrounded.",
+      "question": {
+        "qid": "grounding",
+        "type": "score"
+      },
+      "records": 2500,
+      "train": 2002,
+      "val": 498,
+      "labels": [
+        "ungrounded",
+        "partially_grounded",
+        "grounded"
+      ],
+      "source": "jev-grounding.jsonl"
+    },
+    {
+      "file": "general-topic.jsonl",
+      "name": "general-topic",
+      "description": "News articles by topic.",
+      "question": {
+        "qid": "topic",
+        "type": "choice"
+      },
+      "records": 1992,
+      "train": 1596,
+      "val": 396,
+      "labels": [
+        "World",
+        "Sports",
+        "Business",
+        "Sci/Tech"
+      ],
+      "source": "general-topic.jsonl"
+    },
+    {
+      "file": "general-emotion.jsonl",
+      "name": "general-emotion",
+      "description": "Short English texts by the dominant emotion expressed.",
+      "question": {
+        "qid": "emotion",
+        "type": "choice"
+      },
+      "records": 2000,
+      "train": 1603,
+      "val": 397,
+      "labels": [
+        "sadness",
+        "joy",
+        "love",
+        "anger",
+        "fear",
+        "surprise"
+      ],
+      "source": "general-emotion.jsonl"
+    },
+    {
+      "file": "general-sentiment.jsonl",
+      "name": "general-sentiment",
+      "description": "Movie review sentences: is the opinion positive?",
+      "question": {
+        "qid": "positive",
+        "type": "noul"
+      },
+      "records": 2000,
+      "train": 1601,
+      "val": 399,
+      "labels": [
+        "yes",
+        "no"
+      ],
+      "source": "general-sentiment.jsonl"
+    }
+  ]
+}

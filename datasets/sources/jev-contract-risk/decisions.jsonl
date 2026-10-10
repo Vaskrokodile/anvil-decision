@@ -1,0 +1,86 @@
+{"id":"crk-0009","label":"low","sure":true,"reason":"Supplier-favourable: 15-day payment, no set-off, late interest, withholding needs notice."}
+{"id":"crk-0012","label":"medium","sure":true,"reason":"Contractor must implement variations within 10 BD with no cost adjustment; unilateral but bounded."}
+{"id":"crk-0014","label":"low","sure":false,"reason":"Standard goods warranty; 14-day rejection and sole remedy tight but customary."}
+{"id":"crk-0024","label":"medium","sure":true,"reason":"Care home gets no response commitment; only remedy is a review meeting; weak SLA."}
+{"id":"crk-0027","label":"medium","sure":true,"reason":"Unlimited revision rounds and undefined timeframes; vague, unpaid scope for agency."}
+{"id":"crk-0036","label":"high","sure":true,"reason":"Supplier may suspend indefinitely without liability; customer keeps paying and cannot cancel."}
+{"id":"crk-0039","label":"low","sure":true,"reason":"Price rise capped at CPI+2 yearly; customer consent above cap and exit right."}
+{"id":"crk-0040","label":"low","sure":true,"reason":"Five-year non-solicit with 50% fee favours the agency, our party."}
+{"id":"crk-0045","label":"low","sure":true,"reason":"Customer audit rights favour our client, the hub; no adverse terms for it."}
+{"id":"crk-0046","label":"low","sure":true,"reason":"Full-fee cancellation and 100% deposit protect our supplier Sundial."}
+{"id":"crk-0050","label":"high","sure":true,"reason":"Sole-discretion acceptance gates all payments indefinitely; no interest or suspension right."}
+{"id":"crk-0052","label":"low","sure":false,"reason":"No side named; obligations fall on translator, liability capped to document price."}
+{"id":"crk-0054","label":"high","sure":true,"reason":"Agency may use client's sales and customer data for its own audience models; beyond need."}
+{"id":"crk-0057","label":"low","sure":true,"reason":"Contractor surcharge on notice favours our contractor; customer dispute window is short."}
+{"id":"crk-0058","label":"low","sure":true,"reason":"2x fees cap and indirect-loss exclusions are customary for accountants; reasonable."}
+{"id":"crk-0067","label":"low","sure":true,"reason":"Remediation process; customer terminates only after two failed plans; fair."}
+{"id":"crk-0068","label":"low","sure":true,"reason":"Uncapped indemnity runs from customer to our transcriber; favourable to Quillhaven."}
+{"id":"crk-0081","label":"low","sure":true,"reason":"Supplier deposit and payment terms favour our supplier Coldharbour."}
+{"id":"crk-0084","label":"high","sure":true,"reason":"Patient data may move to non-adequate countries on notice only; no consent; beyond need."}
+{"id":"crk-0087","label":"low","sure":true,"reason":"Customer audit rights favour our client; burden falls on provider."}
+{"id":"crk-0094","label":"low","sure":true,"reason":"Employer pays 150% of contract sum on convenience termination; protective for contractor."}
+{"id":"crk-0097","label":"low","sure":true,"reason":"Supplier liability capped at GBP 1,000 while customer liability is unlimited; favours our supplier."}
+{"id":"crk-0099","label":"low","sure":true,"reason":"Deemed acceptance on use or payment favours our print supplier; latent-defect carve-out."}
+{"id":"crk-0102","label":"medium","sure":true,"reason":"Auto-renewal with 90-day non-renewal notice: easy-to-miss renewal, reasonable opt-out."}
+{"id":"crk-0111","label":"low","sure":false,"reason":"Remedy limited to repair, replace or credit, no removal costs; 36-month warranty is the exposure."}
+{"id":"crk-0117","label":"low","sure":true,"reason":"Customer dependency and delay clauses favour our supplier; payment not excused."}
+{"id":"crk-0127","label":"medium","sure":true,"reason":"14-day payment and 7-day dispute window are tight for customer; interest mild."}
+{"id":"crk-0129","label":"high","sure":false,"reason":"Customer bears all removal costs; defects waived after 7 days; replacement-only remedy."}
+{"id":"crk-0134","label":"low","sure":true,"reason":"Non-compete and liquidated damages bind the consultant; protective for our client."}
+{"id":"crk-0135","label":"medium","sure":true,"reason":"Provider-nominated binding expert; customer pays fees in advance and waives challenge; fixable."}
+{"id":"crk-0138","label":"medium","sure":true,"reason":"Three-month interest-free deposit applied at will; weak refund; negotiable."}
+{"id":"crk-0139","label":"medium","sure":true,"reason":"Re-work within seven days is the only remedy for defective work; weak remedy."}
+{"id":"crk-0141","label":"medium","sure":true,"reason":"Mutual six-month notice, but only the customer pays a three-month early fee."}
+{"id":"crk-0144","label":"medium","sure":true,"reason":"GBP 5m PI for six years is heavy for a small architect; lapse is breach."}
+{"id":"crk-0153","label":"medium","sure":true,"reason":"Open-ended unpaid additional services on request; vague deliverable for our supplier."}
+{"id":"crk-0162","label":"medium","sure":true,"reason":"Client may exit on three months' notice if objecting to subcontractors; short unilateral right."}
+{"id":"crk-0164","label":"medium","sure":true,"reason":"Deemed acceptance after ten BD of sea trials; customer carries latent-defect risk."}
+{"id":"crk-0174","label":"medium","sure":true,"reason":"Customer exit on six months' notice with 10% fee on unexpired term; moderate, fixable."}
+{"id":"crk-0177","label":"low","sure":true,"reason":"Deemed approval after 21 days and paid revisions favour our modeller."}
+{"id":"crk-0179","label":"low","sure":true,"reason":"Developer's accessibility fixes bounded to 90 days; all other warranties excluded."}
+{"id":"crk-0183","label":"high","sure":false,"reason":"Uncapped quarterly repricing to market rates; cancellation only before dispatch; no protection."}
+{"id":"crk-0189","label":"high","sure":true,"reason":"Payroll records and personal data on demand within 48 hours, kept six years; beyond need."}
+{"id":"crk-0192","label":"high","sure":true,"reason":"Franchisor may use franchisee's name and customer lists in any media, without approval."}
+{"id":"crk-0201","label":"medium","sure":true,"reason":"Mutual but indefinite, unmarked confidentiality; burdensome for the clinic."}
+{"id":"crk-0210","label":"medium","sure":true,"reason":"Uncapped force-majeure price rises and stock allocation at supplier discretion; payments continue."}
+{"id":"crk-0211","label":"low","sure":true,"reason":"Six-month warranty with customer-option replace or credit; customary."}
+{"id":"crk-0216","label":"high","sure":true,"reason":"Pseudonymised participant data used for product development and cross-customer matching; 3-year retention."}
+{"id":"crk-0220","label":"medium","sure":true,"reason":"Provider may raise monthly fee on 60 days' notice; cancellation is the only remedy."}
+{"id":"crk-0222","label":"medium","sure":true,"reason":"Estate's discretionary, uncapped handling surcharge on top of the fixed price."}
+{"id":"crk-0225","label":"medium","sure":true,"reason":"Customer waives set-off; supplier may set off across agreements without notice."}
+{"id":"crk-0231","label":"medium","sure":true,"reason":"Best-endeavours delivery and right to decline any order; weak supply remedy."}
+{"id":"crk-0252","label":"high","sure":true,"reason":"Company may terminate only on 12 months' notice; operator can vary fees and keep refunds."}
+{"id":"crk-0258","label":"medium","sure":false,"reason":"Uncapped 10% weekly deductions with 2-day dispute window; harsh, borderline high."}
+{"id":"crk-0260","label":"medium","sure":true,"reason":"Fix within a reasonable time only; no accuracy warranty for clinical imaging software."}
+{"id":"crk-0261","label":"medium","sure":false,"reason":"Retroactive list-price charges for unknown mailboxes, uncapped; unilateral but fixable."}
+{"id":"crk-0264","label":"medium","sure":true,"reason":"Acceptance tests undefined; full payment until supplier confirms; fixable."}
+{"id":"crk-0267","label":"low","sure":true,"reason":"First-refusal right and matching terms favour our provider Thackeray."}
+{"id":"crk-0270","label":"high","sure":true,"reason":"Uncapped storage cost recovery for cancelled binding quantities; open-ended and unlimited in time."}
+{"id":"crk-0275","label":"low","sure":true,"reason":"Liability capped at fees, grant decision excluded; customary for consultants."}
+{"id":"crk-0276","label":"medium","sure":true,"reason":"Unilateral substitution without prior notice at unchanged prices; fixable."}
+{"id":"crk-0285","label":"high","sure":true,"reason":"Patient scans kept after termination and charged until deletion requested; beyond need."}
+{"id":"crk-0291","label":"medium","sure":true,"reason":"Contractor may suspend up to 60 days a year with full fee payable."}
+{"id":"crk-0294","label":"medium","sure":true,"reason":"Vague delivery window, no cancellation once confirmed, no delay damages."}
+{"id":"crk-0297","label":"low","sure":true,"reason":"Main contractor's up to 15% affiliate charge favours our Cromwell; subcontractor has no claim."}
+{"id":"crk-0298","label":"medium","sure":false,"reason":"GBP 2,000 per-parcel carrier cap leaves fragile-goods exposure; borderline."}
+{"id":"crk-0300","label":"medium","sure":true,"reason":"Fixed fee regardless of enquiries delivered; no minimum commitment; vague deliverable."}
+{"id":"crk-0301","label":"low","sure":true,"reason":"Uncapped liquidated damages and no set-off for client delay favour our subcontractor."}
+{"id":"crk-0302","label":"low","sure":true,"reason":"Fleet card terms standard: supplier-set limits, fixed pricing, 30-day query window."}
+{"id":"crk-0309","label":"high","sure":false,"reason":"Deemed acceptance after 48 hours including latent defects; no withholding right; borderline."}
+{"id":"crk-0311","label":"low","sure":true,"reason":"Liability capped at annual maintenance fee; two visits and standard warranty."}
+{"id":"crk-0315","label":"low","sure":true,"reason":"Uncapped collection costs and 10% interest favour our supplier Huxley."}
+{"id":"crk-0318","label":"medium","sure":true,"reason":"Contractor may cut scope and set fee adjustment unilaterally, with no dispute right."}
+{"id":"crk-0320","label":"low","sure":false,"reason":"Liability capped at one inspection fee; hidden defects excluded; limited but customary."}
+{"id":"crk-0321","label":"medium","sure":true,"reason":"No guaranteed response or delivery time; remedy is a monthly discussion only."}
+{"id":"crk-0324","label":"low","sure":true,"reason":"Client retention and remedy-cost right favour our client Marlow and Pine."}
+{"id":"crk-0330","label":"low","sure":true,"reason":"Partial deliveries paid individually with no set-off; favours our supplier Keswick."}
+{"id":"crk-0332","label":"medium","sure":true,"reason":"Liability capped at one month's subscription per sensor; weak for brewery losses."}
+{"id":"crk-0348","label":"low","sure":true,"reason":"Uncapped cost-plus-10% expense recharge favours our consultant Silverdale."}
+{"id":"crk-0352","label":"low","sure":true,"reason":"Provider may raise rates 8% and vary terms unilaterally; favours our provider Tidewater."}
+{"id":"crk-0358","label":"high","sure":true,"reason":"Provider withholds student records until all sums paid, including disputed sums."}
+{"id":"crk-0361","label":"medium","sure":true,"reason":"Employer's panel expert binding; contractor pays all fees and waives challenge; fixable."}
+{"id":"crk-0366","label":"medium","sure":false,"reason":"Liability capped at three months' fees for a records platform; weak remedy; borderline."}
+{"id":"crk-0372","label":"low","sure":true,"reason":"Standard six-month replacement remedy with consequential loss excluded; customary."}
+{"id":"crk-0384","label":"high","sure":false,"reason":"Platform may change terms on publication; continued orders deemed acceptance even unread."}
+{"id":"crk-0396","label":"medium","sure":true,"reason":"Fuel surcharge up to 15% of flat rate at hub's discretion; limited dispute rights."}
+{"id":"crk-0399","label":"low","sure":true,"reason":"Deemed approval after ten BD and paid changes favour our designer Rushden."}

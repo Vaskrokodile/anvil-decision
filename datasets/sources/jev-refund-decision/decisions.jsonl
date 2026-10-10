@@ -1,0 +1,7 @@
+{"id":"rfd-0100","label":"escalate","sure":true,"reason":"Report 5 days after delivery, past 72h; carrier sheet conflicts with customer account; facts conflict."}
+{"id":"rfd-0105","label":"escalate","sure":true,"reason":"Refund window expired (72h vs 24h), but GO-4 gives manager discretion for goodwill route."}
+{"id":"rfd-0237","label":"escalate","sure":false,"reason":"In warranty and under limit, but repair comes first; refund needs repair impossible, unconfirmed."}
+{"id":"rfd-0266","label":"escalate","sure":true,"reason":"Fitted part excluded, but label, order and listing part numbers conflict; seller misdescription possible."}
+{"id":"rfd-0300","label":"approve","sure":true,"reason":"Day 28 of 30; soles clean, box intact; indoor try-on only, within front-line limit."}
+{"id":"rfd-0311","label":"escalate","sure":true,"reason":"Opened formula excluded, but infant health concern is a safety signal requiring food safety referral."}
+{"id":"rfd-0144","label":"deny","sure":true,"reason":"Cancelled after 46.5 hours by timestamps; window is 48 hours"}

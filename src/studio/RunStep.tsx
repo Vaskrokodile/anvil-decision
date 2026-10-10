@@ -523,10 +523,10 @@ export default function RunStep({
               <p className="mt-3 font-mono text-[10px] leading-relaxed text-faint">
                 {engine === 'ft'
                   ? ft
-                    ? `${ft.mode} on MiniLM · ${ft.rows} rows · ${ft.backend} · loss ${ft.loss.toFixed(3)}`
+                    ? `${ft.mode} on MiniLM · ${ft.rows} rows · ${ft.backend} · loss ${ft.loss.toFixed(3)}${ft.valAcc != null ? ` · val ${(ft.valAcc * 100).toFixed(0)}%` : ''}`
                     : 'fine-tune in step 05 or load a .safetensors export'
                   : head
-                    ? `trained ${head.rows} rows · ${head.backend} · loss ${head.loss.toFixed(3)}`
+                    ? `trained ${head.rows} rows · ${head.backend} · loss ${head.loss.toFixed(3)}${head.valAcc != null ? ` · val ${(head.valAcc * 100).toFixed(0)}%` : ''}`
                     : 'train a head in step 05 or load a .safetensors export'}
               </p>
             </>
