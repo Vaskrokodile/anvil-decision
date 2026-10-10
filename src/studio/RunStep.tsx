@@ -86,7 +86,7 @@ const DEFAULT_STATE =
 function Bar({ p }: { p: number }) {
   return (
     <div className="h-1 w-full overflow-hidden rounded-full bg-line">
-      <div className="h-full rounded-full bg-blue" style={{ width: `${Math.round(p * 100)}%` }} />
+      <div className="h-full rounded-full bg-ink" style={{ width: `${Math.round(p * 100)}%` }} />
     </div>
   );
 }
@@ -115,7 +115,7 @@ function AnswerCard({ q, a }: { q: Question; a: Answer }) {
               </div>
             ))}
           <p className="mt-1 font-mono text-[11px] text-faint">
-            → <span className="text-blue">{a.choice}</span> @ {(a.confidence * 100).toFixed(1)}%
+            → <span className="text-ink">{a.choice}</span> @ {(a.confidence * 100).toFixed(1)}%
           </p>
         </div>
       )}
@@ -348,7 +348,7 @@ export default function RunStep({
           }}
           disabled={!head}
           className={`rounded-full border px-4 py-1.5 font-mono text-[10px] uppercase tracking-[0.15em] transition-colors disabled:opacity-40 ${
-            engine === 'head' ? 'border-blue bg-blue-dim text-blue' : 'border-line text-dim hover:text-fg'
+            engine === 'head' ? 'border-ink bg-ink-dim text-ink' : 'border-line text-dim hover:text-fg'
           }`}
         >
           anvil head {head ? `· ${head.labels.length} classes` : '· none trained'}
@@ -361,7 +361,7 @@ export default function RunStep({
           }}
           disabled={!ft}
           className={`rounded-full border px-4 py-1.5 font-mono text-[10px] uppercase tracking-[0.15em] transition-colors disabled:opacity-40 ${
-            engine === 'ft' ? 'border-blue bg-blue-dim text-blue' : 'border-line text-dim hover:text-fg'
+            engine === 'ft' ? 'border-ink bg-ink-dim text-ink' : 'border-line text-dim hover:text-fg'
           }`}
         >
           anvil-ft {ft ? `· ${ft.mode} ${ft.backend}` : '· none'}
@@ -386,14 +386,14 @@ export default function RunStep({
           checkpoint
         </span>
         {engine === 'head' ? (
-          <Tag tone="blue">anvil head — {head?.encoder ?? 'MiniLM'} + linear</Tag>
+          <Tag tone="ink">anvil head — {head?.encoder ?? 'MiniLM'} + linear</Tag>
         ) : engine === 'ft' ? (
-          <Tag tone="blue">
+          <Tag tone="ink">
             anvil-ft — MiniLM {ft?.mode}
             {ft?.mode === 'lora' ? ` r=${ft.rank}` : ''} + head
           </Tag>
         ) : isJevRunnable(model?.onnx) ? (
-          <Tag tone="blue">{model?.onnx}</Tag>
+          <Tag tone="ink">{model?.onnx}</Tag>
         ) : (
           <>
             <Tag>
@@ -413,7 +413,7 @@ export default function RunStep({
           </>
         )}
         {engine === 'jev' && info && (
-          <Tag tone={info.isCached ? 'blue' : 'dim'}>
+          <Tag tone={info.isCached ? 'ink' : 'dim'}>
             {info.isCached ? 'cached' : `~${downloadMB} MB download`}
           </Tag>
         )}
@@ -448,7 +448,7 @@ export default function RunStep({
             {engine === 'head' || engine === 'ft' ? (
               phase === 'deciding' ? (
                 <span className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-dim">
-                  <SpinnerGap size={14} className="animate-spin text-blue" />
+                  <SpinnerGap size={14} className="animate-spin text-ink" />
                   {engine === 'ft' ? 'encoder forward…' : 'embed + forward…'}
                 </span>
               ) : (
@@ -472,7 +472,7 @@ export default function RunStep({
               </button>
             ) : phase === 'deciding' ? (
               <span className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-dim">
-                <SpinnerGap size={14} className="animate-spin text-blue" />
+                <SpinnerGap size={14} className="animate-spin text-ink" />
                 one forward pass…
               </span>
             ) : (
@@ -496,7 +496,7 @@ export default function RunStep({
             {phase === 'loading' && (
               <div className="h-1 flex-1 overflow-hidden rounded-full bg-line">
                 <div
-                  className="h-full rounded-full bg-blue transition-all"
+                  className="h-full rounded-full bg-ink transition-all"
                   style={{ width: `${loadPct}%` }}
                 />
               </div>
@@ -514,7 +514,7 @@ export default function RunStep({
                 {((engine === 'ft' ? ft?.labels : head?.labels) ?? []).map((l) => (
                   <span
                     key={l}
-                    className="rounded-full border border-blue/60 bg-blue-dim px-2.5 py-0.5 font-mono text-[10px] text-blue"
+                    className="rounded-full border border-ink/60 bg-ink-dim px-2.5 py-0.5 font-mono text-[10px] text-ink"
                   >
                     {l}
                   </span>
@@ -549,7 +549,7 @@ export default function RunStep({
           <ul className="flex flex-col gap-2">
             {PACKS[pack].questions.map((q, i) => (
               <li key={i} className="rounded-lg border border-line-soft bg-paper px-3 py-2">
-                <span className="font-mono text-[9px] uppercase tracking-widest text-blue">
+                <span className="font-mono text-[9px] uppercase tracking-widest text-ink">
                   {q.type}
                 </span>
                 <p className="text-[12.5px] text-fg">{q.instructions}</p>

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Download, Play, SpinnerGap } from '@phosphor-icons/react';
+import { motion } from 'motion/react';
+import { CheckCircle, Download, Play, SpinnerGap } from '@phosphor-icons/react';
 import type { GpuReport } from '../lib/gpu';
 import { fmtBytes } from '../lib/gpu';
 import type { Dataset } from '../lib/dataset';
@@ -61,7 +62,7 @@ function LossCurve({ history }: { history: { loss: number; acc: number }[] }) {
       <polyline
         points={pts}
         fill="none"
-        stroke="var(--color-blue)"
+        stroke="var(--color-ink)"
         strokeWidth="1.5"
         strokeLinejoin="round"
       />
@@ -380,18 +381,18 @@ export default function ConfigStep({
               <label
                 key={m}
                 className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 transition-colors ${
-                  config.mode === m ? 'border-blue bg-blue-dim/50' : 'border-line hover:border-faint'
+                  config.mode === m ? 'border-ink bg-ink-dim/50' : 'border-line hover:border-faint'
                 }`}
               >
                 <input
                   type="radio"
                   name="mode"
-                  className="accent-blue"
+                  className="accent-ink"
                   checked={config.mode === m}
                   onChange={() => onConfig({ ...config, mode: m })}
                 />
                 <span className="text-[13px] text-dim">{MODE_LABELS[m]}</span>
-                <Tag tone="blue">{m === 'head' ? 'engine v1' : 'engine v2'}</Tag>
+                <Tag tone="ink">{m === 'head' ? 'engine v1' : 'engine v2'}</Tag>
               </label>
             ))}
           </div>
@@ -407,7 +408,7 @@ export default function ConfigStep({
                     key={r}
                     onClick={() => setRank(r)}
                     className={`rounded-full border px-3 py-1 font-mono text-[11px] transition-colors ${
-                      rank === r ? 'border-blue bg-blue-dim text-blue' : 'border-line text-dim'
+                      rank === r ? 'border-ink bg-ink-dim text-ink' : 'border-line text-dim'
                     }`}
                   >
                     r={r}
@@ -513,7 +514,7 @@ export default function ConfigStep({
               </div>
               <div className="mb-2 h-1.5 w-full rounded-full bg-line">
                 <div
-                  className={`h-full rounded-full transition-all ${over ? 'bar-over' : 'bg-blue'}`}
+                  className={`h-full rounded-full transition-all ${over ? 'bar-over' : 'bg-ink'}`}
                   style={{ width: `${Math.min(100, (est / budget) * 100)}%` }}
                 />
               </div>
@@ -554,7 +555,7 @@ export default function ConfigStep({
                 tokenizing…
               </div>
             ) : (
-              <div className="flex items-center justify-center gap-2 rounded-full border border-blue/60 bg-blue-dim px-4 py-3 font-mono text-[11px] uppercase tracking-[0.15em] text-blue">
+              <div className="flex items-center justify-center gap-2 rounded-full border border-ink/60 bg-ink-dim px-4 py-3 font-mono text-[11px] uppercase tracking-[0.15em] text-ink">
                 <SpinnerGap size={13} className="animate-spin" />
                 training{liveBackend ? ` · ${liveBackend}` : ''} · epoch{' '}
                 {Math.ceil(history[history.length - 1]?.epoch ?? 0)}/{config.epochs}
@@ -577,14 +578,39 @@ export default function ConfigStep({
               </p>
             )}
 
+            {phase === 'done' && (result || ftResult) && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35 }}
+                role="status"
+                className="flex items-center gap-3 rounded-xl border border-ink/30 bg-ink px-4 py-3 text-card"
+              >
+                <CheckCircle size={18} weight="fill" className="shrink-0" />
+                <div className="min-w-0">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.15em]">
+                    Training complete
+                  </p>
+                  <p className="mt-0.5 truncate font-mono text-[10px] tracking-wide text-card/60">
+                    {(result ?? ftResult)!.backend} ·{' '}
+                    {result ? 'head' : ftResult!.mode} ·{' '}
+                    {(result ?? ftResult)!.valAcc != null
+                      ? `val ${((result ?? ftResult)!.valAcc! * 100).toFixed(0)}% on held-out rows`
+                      : 'no val split'}{' '}
+                    — artifact in session, export or send to Run
+                  </p>
+                </div>
+              </motion.div>
+            )}
+
             {result && (
               <div className="flex flex-col gap-2">
                 <div className="flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-widest">
-                  <Tag tone="blue">trained · {result.backend}</Tag>
+                  <Tag tone="ink">trained · {result.backend}</Tag>
                   <Tag>loss {result.loss.toFixed(3)}</Tag>
                   <Tag>train {(result.acc * 100).toFixed(0)}% · n={result.trainN ?? result.rows}</Tag>
                   {result.valAcc != null ? (
-                    <Tag tone="blue">
+                    <Tag tone="ink">
                       val {(result.valAcc * 100).toFixed(0)}% · n={result.valN}
                     </Tag>
                   ) : (
@@ -604,7 +630,7 @@ export default function ConfigStep({
                       setTrainedHead(result);
                       onTrained?.();
                     }}
-                    className="flex flex-1 items-center justify-center gap-2 rounded-full bg-blue px-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.15em] text-white transition-opacity hover:opacity-85"
+                    className="flex flex-1 items-center justify-center gap-2 rounded-full bg-ink px-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.15em] text-white transition-opacity hover:opacity-85"
                   >
                     Use in Run →
                   </button>
@@ -615,13 +641,13 @@ export default function ConfigStep({
             {ftResult && (
               <div className="flex flex-col gap-2">
                 <div className="flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-widest">
-                  <Tag tone="blue">
+                  <Tag tone="ink">
                     {ftResult.mode} · {ftResult.backend}
                   </Tag>
                   <Tag>loss {ftResult.loss.toFixed(3)}</Tag>
                   <Tag>train {(ftResult.acc * 100).toFixed(0)}% · n={ftResult.trainN ?? ftResult.rows}</Tag>
                   {ftResult.valAcc != null ? (
-                    <Tag tone="blue">
+                    <Tag tone="ink">
                       val {(ftResult.valAcc * 100).toFixed(0)}% · n={ftResult.valN}
                     </Tag>
                   ) : (
@@ -641,7 +667,7 @@ export default function ConfigStep({
                       setFtArtifact(ftResult);
                       onTrained?.();
                     }}
-                    className="flex flex-1 items-center justify-center gap-2 rounded-full bg-blue px-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.15em] text-white transition-opacity hover:opacity-85"
+                    className="flex flex-1 items-center justify-center gap-2 rounded-full bg-ink px-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.15em] text-white transition-opacity hover:opacity-85"
                   >
                     Use in Run →
                   </button>
@@ -661,7 +687,7 @@ export default function ConfigStep({
               <span>{model ? model.name : 'no roster pick'}</span>
               <span>
                 {dataset ? `${dataset.rows.length} rows` : 'no dataset'}{' '}
-                {ready ? <Tag tone="blue">ready</Tag> : <Tag tone="line">incomplete</Tag>}
+                {ready ? <Tag tone="ink">ready</Tag> : <Tag tone="line">incomplete</Tag>}
               </span>
             </p>
           </div>

@@ -23,7 +23,9 @@ selection → dataset builder → job spec. Landing + Studio SPA.
 - `src/lib/dataset.ts` — .jsonl/.csv/.json/.txt parsers + `analyzeDataset()` health stats (dupes, per-column uniques, label guess, warnings) + `dedupeDataset()`.
 - `src/lib/hfDatasets.ts` — datasets-server client: `parseDatasetRef` (id or URL), `fetchSplits`, `fetchRows` (ClassLabel→names, retry on 429). Shared with `scripts/fetch-starter.mts`, which regenerates `public/datasets/*.jsonl` + `index.json` (bundled starter sets).
 - `src/lib/split.ts` — seeded stratified train/val split + `mulberry` rng. Both workers hold out 20% (`valFrac`) and report `valAcc`/`valN`/`trainN` in their `done` messages.
-- `src/components/AuroraCanvas.tsx` — three.js star field over CSS aurora (lazy chunk).
+- `src/components/VPrism.tsx` + `vPrismSettings.ts` — hero centerpiece (adapted
+  from ObsidianUI v-prism; three.js + postprocessing bloom, lazy chunk).
+  Assets vendored to `public/prism/` — no CDN hotlinks.
 - `src/studio/` — 5-step console: probe → model → dataset → run → configure/train.
 - `src/lib/jev.ts` — open-jev wrapper (`kev-0.6b` / `open-jev` / `kev-4b`).
   NOTE: `gliner2`-config ONNX exports (e.g. GLiNER2.5-Decide-ONNX) are NOT
@@ -41,15 +43,16 @@ selection → dataset builder → job spec. Landing + Studio SPA.
 
 ## Conventions
 
-- "Aurora lab" design: full-bleed dark aurora hero (CSS `.aurora-sky` /
-  `.aurora-dome` / `.planet` / `.dot-matrix` layers + lazy `AuroraCanvas` star
-  field), then a paper-white body. One accent only — `blue` (#3b82f6). No green,
-  no orange, no purple.
+- Monochrome design: full-bleed black hero — silver "moonlight" dome (CSS
+  `.aurora-sky` / `.aurora-dome` / `.planet` layers, also the no-WebGL
+  fallback) + lazy `VPrism` beam canvas + `.dot-matrix` — then a
+  paper-white body. No hue accents: white on dark, `ink` (near-black) on
+  light. The prism's spectrum is the only color on the site.
 - Tokens in `src/index.css` `@theme`: light body = paper/card/line/fg/dim/faint;
   dark hero = abyss/navy + ice/ice-dim/ice-faint/ice-line.
-- `Tag` tones: solid / blue / line / dim / faint — fill level carries meaning.
-  "Over budget" uses hatched `.bar-over`. Cards can aurora-fill on hover via
-  `.card-aurora`.
+- `Tag` tones: solid / ink / line / dim / faint — fill level carries meaning.
+  "Over budget" uses hatched `.bar-over`. Cards dark-fill on hover via
+  `.card-void`.
 - Type: Instrument Serif (`font-display`) for headings, Space Grotesk body,
   JetBrains Mono for data/labels. Labels are bracketed: `[ 01 — roster ]`.
 - Honesty rule: UI labels mark what is live vs. planned — keep it that way.

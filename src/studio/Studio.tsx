@@ -63,12 +63,12 @@ export default function Studio() {
               }`}
             >
               {done[i] ? (
-                <Check size={12} className="shrink-0 text-blue" weight="bold" />
+                <Check size={12} className="shrink-0 text-ink" weight="bold" />
               ) : (
                 <Circle
                   size={9}
                   weight="fill"
-                  className={`shrink-0 ${active ? 'text-blue' : 'text-faint'}`}
+                  className={`shrink-0 ${active ? 'text-ink' : 'text-faint'}`}
                 />
               )}
               <span className="font-mono text-[11px] uppercase tracking-[0.15em]">{label}</span>

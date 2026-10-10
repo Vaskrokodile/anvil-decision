@@ -70,7 +70,7 @@ export default function ModelStep({
               onClick={() => onPick(m.hf)}
               className={`group rounded-2xl border bg-card p-6 text-left transition-colors ${
                 selected
-                  ? 'border-blue bg-blue-dim/50'
+                  ? 'border-ink bg-ink-dim/50'
                   : disabled
                     ? 'cursor-not-allowed border-line-soft opacity-45'
                     : 'border-line hover:border-faint hover:bg-paper'

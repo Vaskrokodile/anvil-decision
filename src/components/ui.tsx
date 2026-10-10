@@ -51,7 +51,7 @@ export function SectionHeader({
 
 /**
  * Tag — fill level carries meaning:
- * solid = selected, blue = fits/positive, line = marginal, dim = neutral,
+ * solid = selected, ink = fits/positive, line = marginal, dim = neutral,
  * faint = disabled/negative.
  */
 export function Tag({
@@ -59,11 +59,11 @@ export function Tag({
   tone = 'dim',
 }: {
   children: ReactNode;
-  tone?: 'solid' | 'blue' | 'line' | 'dim' | 'faint';
+  tone?: 'solid' | 'ink' | 'line' | 'dim' | 'faint';
 }) {
   const tones = {
     solid: 'border-fg bg-fg text-card',
-    blue: 'border-blue/60 bg-blue-dim text-blue',
+    ink: 'border-ink/60 bg-ink-dim text-ink',
     line: 'border-fg/30 text-fg',
     dim: 'border-line text-dim',
     faint: 'border-dashed border-line text-faint',
@@ -80,7 +80,7 @@ export function Tag({
 export function FitBadge({ fit }: { fit: 'fits' | 'marginal' | 'no' | 'unknown' }) {
   if (fit === 'unknown') return <Tag>unprobed</Tag>;
   const map = {
-    fits: ['blue', 'fits'],
+    fits: ['ink', 'fits'],
     marginal: ['line', 'marginal'],
     no: ['faint', 'won’t fit'],
   } as const;

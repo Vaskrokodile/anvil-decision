@@ -8,31 +8,29 @@
 @import "@fontsource/jetbrains-mono/500.css";
 @import "tailwindcss";
 
-/* Anvil v2 — "aurora lab". Dark aurora hero on a paper-white body.
-   Monochrome + ONE secondary: aurora blue. */
+/* Anvil v3 — monochrome. Black hero on a paper-white body.
+   No accent hues: meaning is carried by fill level and weight. */
 @theme {
   /* light content surface */
-  --color-paper: #f4f5f2;
-  --color-card: #fbfbf9;
-  --color-line: #e2e4de;
-  --color-line-soft: #eceee8;
-  --color-fg: #0d1219;
-  --color-dim: #57606d;
-  --color-faint: #a0a7b0;
+  --color-paper: #f5f5f3;
+  --color-card: #fbfbfa;
+  --color-line: #e3e4e1;
+  --color-line-soft: #ecede9;
+  --color-fg: #111214;
+  --color-dim: #5a5c60;
+  --color-faint: #a2a4a7;
 
   /* dark hero surface */
-  --color-abyss: #05070f;
-  --color-navy: #0a1526;
-  --color-ice: #e8edf5;
-  --color-ice-dim: #9aa8bc;
-  --color-ice-faint: #566274;
-  --color-ice-line: #1d2a40;
+  --color-abyss: #060607;
+  --color-navy: #101012;
+  --color-ice: #f1f2f0;
+  --color-ice-dim: #a5a7a9;
+  --color-ice-faint: #5f6165;
+  --color-ice-line: #26272b;
 
-  /* the single accent — aurora blue */
-  --color-blue: #3b82f6;
-  --color-blue-bright: #60a5fa;
-  --color-blue-deep: #1d4ed8;
-  --color-blue-dim: #3b82f61f;
+  /* the single accent — ink */
+  --color-ink: #111214;
+  --color-ink-dim: #11121414;
 
   --font-sans: "Space Grotesk", system-ui, sans-serif;
   --font-display: "Instrument Serif", Georgia, serif;
@@ -56,8 +54,8 @@ body {
 }
 
 ::selection {
-  background: var(--color-blue);
-  color: #fff;
+  background: var(--color-fg);
+  color: var(--color-paper);
 }
 
 ::-webkit-scrollbar {
@@ -82,25 +80,24 @@ body {
 }
 
 /* ------------------------------------------------------------------ */
-/* Aurora hero scene — layered CSS + the three.js star layer on top.   */
+/* Hero sky — silver "moonlight" dome behind the prism canvas. Doubles */
+/* as the fallback when WebGL can't start.                             */
 /* ------------------------------------------------------------------ */
 
 .aurora-sky {
   background:
-    /* aurora dome rising from below the planet */
-    radial-gradient(ellipse 110% 68% at 50% 112%, var(--color-aurora2, #38bdf8) 0%, transparent 62%),
-    radial-gradient(ellipse 85% 55% at 50% 108%, var(--color-aurora1, #3b82f6) 8%, transparent 55%),
-    /* sky falloff */
-    linear-gradient(to bottom, #040710 0%, #071226 42%, #0a1c38 66%, transparent 100%);
+    radial-gradient(ellipse 110% 68% at 50% 112%, rgba(241, 242, 240, 0.26) 0%, transparent 62%),
+    radial-gradient(ellipse 85% 55% at 50% 108%, rgba(241, 242, 240, 0.15) 8%, transparent 55%),
+    linear-gradient(to bottom, #050506 0%, #0a0b0c 42%, #141518 66%, transparent 100%);
 }
 
 .aurora-dome {
   /* the glowing band hugging the planet horizon */
   background: radial-gradient(
     ellipse 88% 46% at 50% 104%,
-    #7dd3fc 0%,
-    #38bdf8 22%,
-    #2563eb 40%,
+    rgba(241, 242, 240, 0.5) 0%,
+    rgba(241, 242, 240, 0.22) 22%,
+    rgba(241, 242, 240, 0.08) 40%,
     transparent 68%
   );
   filter: blur(2px);
@@ -110,15 +107,15 @@ body {
   /* dark sphere silhouette — the "metal" */
   background: radial-gradient(
     ellipse 72% 60% at 50% 118%,
-    #0c1522 0%,
-    #070d18 46%,
-    #050810 100%
+    #101114 0%,
+    #0a0a0c 46%,
+    #050506 100%
   );
 }
 
 .dot-matrix {
   /* star-field grid stamped on the upper sky */
-  background-image: radial-gradient(circle, rgba(232, 237, 245, 0.16) 1px, transparent 1.2px);
+  background-image: radial-gradient(circle, rgba(241, 242, 240, 0.16) 1px, transparent 1.2px);
   background-size: 22px 22px;
   mask-image: linear-gradient(to bottom, black 0%, black 45%, transparent 78%);
   -webkit-mask-image: linear-gradient(to bottom, black 0%, black 45%, transparent 78%);
@@ -149,12 +146,12 @@ body {
   }
 }
 
-/* card hover → aurora fill (the reference's highlighted-card trick) */
-.card-aurora {
+/* card hover → void fill (the reference's highlighted-card trick) */
+.card-void {
   position: relative;
   isolation: isolate;
 }
-.card-aurora::before {
+.card-void::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -162,25 +159,25 @@ body {
   border-radius: inherit;
   background: radial-gradient(
     ellipse 90% 80% at 50% 110%,
-    #38bdf8 0%,
-    #2563eb 45%,
-    #0a1c38 100%
+    #3a3b40 0%,
+    #141519 45%,
+    #060607 100%
   );
   opacity: 0;
   transition: opacity 0.35s ease;
 }
-.card-aurora:hover::before,
-.card-aurora.is-active::before {
+.card-void:hover::before,
+.card-void.is-active::before {
   opacity: 1;
 }
-.card-aurora:hover,
-.card-aurora.is-active {
+.card-void:hover,
+.card-void.is-active {
   border-color: transparent;
 }
-.card-aurora:hover *,
-.card-aurora.is-active * {
-  color: #eaf2ff !important;
-  border-color: rgba(234, 242, 255, 0.35) !important;
+.card-void:hover *,
+.card-void.is-active * {
+  color: #f1f2f0 !important;
+  border-color: rgba(241, 242, 240, 0.35) !important;
 }
 
 /* faint engineering grid */
@@ -212,6 +209,6 @@ body {
 }
 
 :focus-visible {
-  outline: 1.5px solid var(--color-blue);
+  outline: 1.5px solid var(--color-ink);
   outline-offset: 2px;
 }

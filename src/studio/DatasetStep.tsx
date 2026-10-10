@@ -212,7 +212,7 @@ export default function DatasetStep({
           <p className="mb-1 text-[13px] text-dim">{sector.desc}</p>
           <div className="flex flex-wrap gap-1.5">
             {sector.schema.map((f) => (
-              <Tag key={f.field} tone={f.role === 'label' ? 'blue' : 'dim'}>
+              <Tag key={f.field} tone={f.role === 'label' ? 'ink' : 'dim'}>
                 {f.field}
               </Tag>
             ))}
@@ -244,9 +244,9 @@ export default function DatasetStep({
                 <span className="flex w-full items-center justify-between gap-2">
                   <span className="font-mono text-[11px] text-fg">{s.name}</span>
                   {starterBusy === s.file ? (
-                    <SpinnerGap size={13} className="animate-spin text-blue" />
+                    <SpinnerGap size={13} className="animate-spin text-ink" />
                   ) : (
-                    <Database size={13} className="text-faint transition-colors group-hover:text-blue" />
+                    <Database size={13} className="text-faint transition-colors group-hover:text-ink" />
                   )}
                 </span>
                 <span className="text-[12px] leading-snug text-dim">{s.desc}</span>
@@ -274,11 +274,11 @@ export default function DatasetStep({
           if (f) void ingest(f);
         }}
         className={`mb-6 flex w-full flex-col items-center gap-2 rounded-2xl border border-dashed px-6 py-10 transition-colors ${
-          dragging ? 'border-blue bg-blue-dim' : 'border-line bg-paper hover:border-faint'
+          dragging ? 'border-ink bg-ink-dim' : 'border-line bg-paper hover:border-faint'
         }`}
       >
         {busy ? (
-          <SpinnerGap size={22} className="animate-spin text-blue" />
+          <SpinnerGap size={22} className="animate-spin text-ink" />
         ) : (
           <FileArrowUp size={22} className="text-dim" />
         )}
@@ -421,12 +421,12 @@ export default function DatasetStep({
           {health && (
             <div className="border-t border-line bg-paper px-4 py-3">
               <div className="mb-2 flex flex-wrap items-center gap-1.5">
-                <Tag tone={health.dupes > 0 ? 'line' : 'blue'}>
+                <Tag tone={health.dupes > 0 ? 'line' : 'ink'}>
                   {health.dupes > 0 ? `${health.dupes} dupes` : 'no dupes'}
                 </Tag>
                 {health.textCol && <Tag tone="dim">text: {health.textCol}</Tag>}
                 {health.labelGuess && (
-                  <Tag tone="blue">
+                  <Tag tone="ink">
                     label: {health.labelGuess} · {health.classCounts.length} classes
                   </Tag>
                 )}
@@ -447,7 +447,7 @@ export default function DatasetStep({
                       <span className="truncate font-mono text-[10.5px] text-dim">{label}</span>
                       <div className="h-1 overflow-hidden rounded-full bg-line">
                         <div
-                          className="h-full rounded-full bg-blue"
+                          className="h-full rounded-full bg-ink"
                           style={{
                             width: `${Math.round((cnt / health.classCounts[0][1]) * 100)}%`,
                           }}

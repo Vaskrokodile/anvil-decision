@@ -60,11 +60,11 @@ const SORTS: { key: SortKey; label: string; get: (s: LbSystem) => number | null 
 const fmt = (v: number | null, d = 1) => (v == null ? '—' : v.toFixed(d));
 const pct = (v: number | null) => (v == null ? '—' : `${(v * 100).toFixed(1)}%`);
 
-function Bar({ v, tone = 'blue' }: { v: number | null; tone?: 'blue' | 'dim' }) {
+function Bar({ v, tone = 'ink' }: { v: number | null; tone?: 'ink' | 'dim' }) {
   const w = v == null ? 0 : Math.max(0, Math.min(100, v));
   return (
     <div className="h-1 w-full overflow-hidden rounded-full bg-line">
-      <div className={`h-full rounded-full ${tone === 'blue' ? 'bg-blue' : 'bg-dim'}`} style={{ width: `${w}%` }} />
+      <div className={`h-full rounded-full ${tone === 'ink' ? 'bg-ink' : 'bg-dim'}`} style={{ width: `${w}%` }} />
     </div>
   );
 }
@@ -147,7 +147,7 @@ function Leaderboard() {
           ))}
         </select>
         <label className="flex cursor-pointer items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-dim">
-          <input type="checkbox" checked={rankedOnly} onChange={(e) => setRankedOnly(e.target.checked)} className="accent-blue" />
+          <input type="checkbox" checked={rankedOnly} onChange={(e) => setRankedOnly(e.target.checked)} className="accent-ink" />
           ranked only
         </label>
         <span className="ml-auto font-mono text-[10px] uppercase tracking-widest text-faint">
@@ -338,8 +338,8 @@ function RunTab() {
         <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-faint">[ run ]</p>
         <div className="mb-3 flex flex-col gap-2">
           {TIERS.map((t) => (
-            <label key={t} className={`flex cursor-pointer items-center gap-3 rounded-xl border px-3.5 py-2.5 transition-colors ${tier === t ? 'border-blue bg-blue-dim/50' : 'border-line hover:border-faint'}`}>
-              <input type="radio" name="tier" className="accent-blue" checked={tier === t} onChange={() => setTier(t)} disabled={phase === 'running'} />
+            <label key={t} className={`flex cursor-pointer items-center gap-3 rounded-xl border px-3.5 py-2.5 transition-colors ${tier === t ? 'border-ink bg-ink-dim/50' : 'border-line hover:border-faint'}`}>
+              <input type="radio" name="tier" className="accent-ink" checked={tier === t} onChange={() => setTier(t)} disabled={phase === 'running'} />
               <span className="font-mono text-[11px] uppercase tracking-widest text-fg">{t}</span>
               <span className="ml-auto font-mono text-[10px] text-faint">
                 {t === 'hard' ? 'long states · ~8.6k chars' : t === 'original' ? 'mixed families' : 'short, simple'}
@@ -350,7 +350,7 @@ function RunTab() {
         <div className="mb-6 flex items-center gap-2">
           <span className="font-mono text-[10px] uppercase tracking-widest text-faint">items</span>
           {[12, 24, 48, 999].map((v) => (
-            <button key={v} onClick={() => setN(v)} disabled={phase === 'running'} className={`rounded-full border px-3 py-1 font-mono text-[11px] ${n === v ? 'border-blue bg-blue-dim text-blue' : 'border-line text-dim'}`}>
+            <button key={v} onClick={() => setN(v)} disabled={phase === 'running'} className={`rounded-full border px-3 py-1 font-mono text-[11px] ${n === v ? 'border-ink bg-ink-dim text-ink' : 'border-line text-dim'}`}>
               {v === 999 ? 'all' : v}
             </button>
           ))}
@@ -384,11 +384,11 @@ function RunTab() {
         {phase === 'running' && (
           <div>
             <div className="mb-2 flex items-center justify-between font-mono text-[11px] text-dim">
-              <span className="flex items-center gap-2"><SpinnerGap size={13} className="animate-spin text-blue" /> {live.length}/{total}</span>
+              <span className="flex items-center gap-2"><SpinnerGap size={13} className="animate-spin text-ink" /> {live.length}/{total}</span>
               <span>{okSoFar ? `${((correct / okSoFar) * 100).toFixed(0)}% so far` : '—'}</span>
             </div>
             <div className="mb-4 h-1.5 w-full overflow-hidden rounded-full bg-line">
-              <div className="h-full rounded-full bg-blue transition-all" style={{ width: `${total ? (live.length / total) * 100 : 0}%` }} />
+              <div className="h-full rounded-full bg-ink transition-all" style={{ width: `${total ? (live.length / total) * 100 : 0}%` }} />
             </div>
           </div>
         )}
@@ -409,7 +409,7 @@ function RunTab() {
               ))}
             </div>
             <div className="flex flex-wrap gap-1.5">
-              <Tag tone="blue">n={summary.n}</Tag>
+              <Tag tone="ink">n={summary.n}</Tag>
               {summary.errors > 0 && <Tag tone="line">{summary.errors} errors</Tag>}
               <Tag>mean p(gold) {summary.meanPGold.toFixed(3)}</Tag>
               <Tag tone="faint">public items only · not official</Tag>

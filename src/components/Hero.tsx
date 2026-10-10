@@ -1,9 +1,9 @@
 import { lazy, Suspense } from 'react';
-import { motion } from 'motion/react';
+import { motion, useReducedMotion } from 'motion/react';
 import { useGpuReport } from '../lib/useGpu';
 import { TIER_LABELS } from '../data/models';
 
-const AuroraCanvas = lazy(() => import('./AuroraCanvas'));
+const VPrism = lazy(() => import('./VPrism'));
 
 const fadeUp = {
   initial: { opacity: 0, y: 18 },
@@ -12,6 +12,7 @@ const fadeUp = {
 
 export default function Hero({ onStudio }: { onStudio: () => void }) {
   const gpu = useGpuReport();
+  const reduce = useReducedMotion();
 
   const adapter =
     gpu === null
@@ -29,19 +30,23 @@ export default function Hero({ onStudio }: { onStudio: () => void }) {
 
   return (
     <section className="relative min-h-svh overflow-hidden bg-abyss text-ice">
-      {/* aurora scene — back to front: sky, dome, planet, stars, dot grid */}
+      {/* moonlit dome — also the fallback if WebGL can't start */}
       <div className="aurora-sky absolute inset-0" aria-hidden="true" />
       <div className="aurora-dome absolute inset-0" aria-hidden="true" />
       <div className="planet absolute inset-0" aria-hidden="true" />
-      <Suspense fallback={null}>
-        <AuroraCanvas className="absolute inset-0" />
-      </Suspense>
+
+      {/* the prism — beam enters low-left, drags to aim */}
+      {!reduce && (
+        <Suspense fallback={null}>
+          <VPrism className="absolute inset-x-0 top-[16%] bottom-0" />
+        </Suspense>
+      )}
       <div
         className="dot-matrix pointer-events-none absolute inset-0"
         aria-hidden="true"
       />
 
-      {/* content — pointer-events pass through to the star layer except on CTAs */}
+      {/* content — pointer-events pass through to the prism except on CTAs */}
       <div className="pointer-events-none relative z-10 flex min-h-svh flex-col pt-16">
         <div className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col items-center justify-center px-6 py-16 text-center">
           <motion.p
@@ -58,7 +63,7 @@ export default function Hero({ onStudio }: { onStudio: () => void }) {
             className="mt-7 max-w-[16ch] font-display text-[clamp(2.8rem,6.5vw,5.5rem)] leading-[1.02] tracking-[-0.02em] text-ice"
           >
             Train small models on your{' '}
-            <span className="serif-i text-blue-bright">own metal.</span>
+            <span className="serif-i text-white">own metal.</span>
           </motion.h1>
 
           <motion.p
@@ -92,7 +97,7 @@ export default function Hero({ onStudio }: { onStudio: () => void }) {
             </a>
           </motion.div>
 
-          {/* scroll cue — vertical hairline fading toward the planet */}
+          {/* scroll cue — vertical hairline fading toward the prism */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

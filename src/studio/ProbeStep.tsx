@@ -31,7 +31,7 @@ export default function ProbeStep({
     >
       {report === null ? (
         <div className="flex items-center gap-3 rounded-2xl border border-line bg-card p-5 font-mono text-[12px] text-dim">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-blue" />
+          <span className="h-2 w-2 animate-pulse rounded-full bg-ink" />
           Requesting adapter…
         </div>
       ) : !report.ok ? (
@@ -93,7 +93,7 @@ export default function ProbeStep({
                 <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-faint">
                   Assigned tier
                 </span>
-                <Tag tone={report.tier >= 3 ? 'blue' : report.tier === 2 ? 'line' : 'faint'}>
+                <Tag tone={report.tier >= 3 ? 'ink' : report.tier === 2 ? 'line' : 'faint'}>
                   {TIER_LABELS[report.tier]}
                 </Tag>
               </div>

@@ -33,7 +33,7 @@ function ChromeBar({ label }: { label: string }) {
         <span className="hidden items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-faint sm:flex">
           <span
             className={`inline-block h-1.5 w-1.5 rounded-full ${
-              gpu === null ? 'animate-pulse bg-faint' : gpu.ok ? 'bg-blue' : 'bg-line'
+              gpu === null ? 'animate-pulse bg-faint' : gpu.ok ? 'bg-ink' : 'bg-line'
             }`}
           />
           {gpu === null ? 'probing…' : gpu.ok ? TIER_LABELS[gpu.tier] : 'no webgpu'}

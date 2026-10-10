@@ -47,7 +47,7 @@ export default function Sectors() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-60px' }}
               transition={{ duration: 0.45, delay: i * 0.05 }}
-              className="card-aurora flex flex-col rounded-2xl border border-line bg-card p-6"
+              className="card-void flex flex-col rounded-2xl border border-line bg-card p-6"
             >
               <p className="mb-8 font-mono text-[10px] uppercase tracking-[0.2em] text-faint">
                 [ {s.code} ]
@@ -65,7 +65,7 @@ export default function Sectors() {
                     key={f.field}
                     className={`rounded-full border px-2.5 py-0.5 font-mono text-[10px] tracking-wide ${
                       f.role === 'label'
-                        ? 'border-blue/60 text-blue'
+                        ? 'border-ink/60 text-ink'
                         : 'border-line text-dim'
                     }`}
                   >
