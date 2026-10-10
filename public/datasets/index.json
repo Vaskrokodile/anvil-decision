@@ -1,0 +1,279 @@
+{
+  "generatedAt": "2026-10-09T14:50:37.793Z",
+  "datasets": [
+    {
+      "file": "expense-triage.jsonl",
+      "name": "Expense triage",
+      "desc": "Internal expense and procurement requests → approve / hold / escalate.",
+      "sector": "decision",
+      "dataset": "hand-authored",
+      "license": "internal sample data",
+      "rows": 300,
+      "classes": 3,
+      "labels": [
+        "approve",
+        "hold",
+        "escalate"
+      ]
+    },
+    {
+      "file": "content-moderation.jsonl",
+      "name": "Content moderation",
+      "desc": "User-generated comments → safe / borderline / unsafe.",
+      "sector": "trust",
+      "dataset": "hand-authored",
+      "license": "internal sample data",
+      "rows": 280,
+      "classes": 3,
+      "labels": [
+        "safe",
+        "borderline",
+        "unsafe"
+      ]
+    },
+    {
+      "file": "support-routing.jsonl",
+      "name": "Support ticket routing",
+      "desc": "Real customer tickets → route to the right support queue.",
+      "sector": "decision",
+      "dataset": "Tobi-Bueck/customer-support-tickets",
+      "license": "CDLA-Sharing-1.0",
+      "rows": 320,
+      "classes": 8,
+      "labels": [
+        "Technical Support",
+        "Returns and Exchanges",
+        "IT Support",
+        "Service Outages and Maintenance",
+        "Billing and Payments",
+        "Product Support",
+        "Sales and Pre-Sales",
+        "Customer Service"
+      ]
+    },
+    {
+      "file": "banking77.jsonl",
+      "name": "Banking77 · intent subset",
+      "desc": "Banking customer queries → intent. 8 of the original 77 intents.",
+      "sector": "decision",
+      "dataset": "mteb/banking77",
+      "license": "CC-BY-4.0",
+      "rows": 280,
+      "classes": 8,
+      "labels": [
+        "pending_cash_withdrawal",
+        "pending_top_up",
+        "wrong_amount_of_cash_received",
+        "cancel_transfer",
+        "card_linking",
+        "extra_charge_on_statement",
+        "card_arrival",
+        "card_payment_wrong_exchange_rate"
+      ]
+    },
+    {
+      "file": "emotion.jsonl",
+      "name": "Emotion classification",
+      "desc": "Short texts → one of six emotions. Small, clean, fast to train on.",
+      "sector": "labelling",
+      "dataset": "dair-ai/emotion",
+      "license": "see dataset card",
+      "rows": 300,
+      "classes": 6,
+      "labels": [
+        "joy",
+        "sadness",
+        "anger",
+        "fear",
+        "love",
+        "surprise"
+      ]
+    },
+    {
+      "file": "agnews.jsonl",
+      "name": "AG News topics",
+      "desc": "News blurbs → world / sports / business / sci-tech taxonomy tagging.",
+      "sector": "labelling",
+      "dataset": "fancyzhx/ag_news",
+      "license": "research use",
+      "rows": 260,
+      "classes": 4,
+      "labels": [
+        "Sci/Tech",
+        "World",
+        "Business",
+        "Sports"
+      ]
+    },
+    {
+      "file": "sst2.jsonl",
+      "name": "SST-2 sentiment",
+      "desc": "The classic binary benchmark — positive vs. negative reviews.",
+      "sector": "general",
+      "dataset": "stanfordnlp/sst2",
+      "license": "research use",
+      "rows": 200,
+      "classes": 2,
+      "labels": [
+        "positive",
+        "negative"
+      ]
+    },
+    {
+      "file": "pii-screen.jsonl",
+      "name": "PII screen",
+      "desc": "Workplace text → does it contain PII, and what kind? All identifiers are fictional test values.",
+      "sector": "trust",
+      "dataset": "hand-authored",
+      "license": "synthetic — fictional identifiers only",
+      "rows": 300,
+      "classes": 4,
+      "labels": [
+        "clean",
+        "contact",
+        "financial",
+        "credential"
+      ]
+    },
+    {
+      "file": "claim-type.jsonl",
+      "name": "Abstract claim types",
+      "desc": "Scientific abstract sentences → rhetorical function: hypothesis, method, result, limitation.",
+      "sector": "scientific",
+      "dataset": "hand-authored",
+      "license": "synthetic",
+      "rows": 280,
+      "classes": 4,
+      "labels": [
+        "hypothesis",
+        "method",
+        "result",
+        "limitation"
+      ]
+    },
+    {
+      "file": "jev-case-routing.jsonl",
+      "name": "Jev case routing (long)",
+      "desc": "Long support threads routed to one of six owning teams. Synthetic, gold labels by construction.",
+      "sector": "decision",
+      "dataset": "synthetic · scripts/datasets/gen-jev-case-routing.mts",
+      "license": "generated in-repo (MIT)",
+      "rows": 2502,
+      "classes": 6,
+      "labels": [
+        "account_security",
+        "billing",
+        "sales",
+        "shipping",
+        "technical",
+        "trust_safety"
+      ]
+    },
+    {
+      "file": "jev-urgency.jsonl",
+      "name": "Jev urgency (long)",
+      "desc": "Long case threads graded low / medium / high / critical by how soon a human must act.",
+      "sector": "decision",
+      "dataset": "synthetic · scripts/datasets/gen-jev-urgency.mts",
+      "license": "generated in-repo (MIT)",
+      "rows": 2500,
+      "classes": 4,
+      "labels": [
+        "critical",
+        "high",
+        "low",
+        "medium"
+      ]
+    },
+    {
+      "file": "jev-policy-check.jsonl",
+      "name": "Jev policy check (long)",
+      "desc": "Policy plus agent transcript: did the last action comply, violate, or need review?",
+      "sector": "trust",
+      "dataset": "synthetic · scripts/datasets/gen-jev-policy-check.mts",
+      "license": "generated in-repo (MIT)",
+      "rows": 2500,
+      "classes": 3,
+      "labels": [
+        "compliant",
+        "needs_review",
+        "violation"
+      ]
+    },
+    {
+      "file": "jev-grounding.jsonl",
+      "name": "Jev grounding (long)",
+      "desc": "Sources plus an answer: fully grounded, partially grounded, or ungrounded.",
+      "sector": "scientific",
+      "dataset": "synthetic · scripts/datasets/gen-jev-grounding.mts",
+      "license": "generated in-repo (MIT)",
+      "rows": 2500,
+      "classes": 3,
+      "labels": [
+        "grounded",
+        "partially_grounded",
+        "ungrounded"
+      ]
+    },
+    {
+      "file": "jev-refund-decision.jsonl",
+      "name": "Jev refund decision",
+      "desc": "Refund requests with policy and case facts: approve, deny, or escalate. Hand-written, blind-verified; timing arithmetic checked.",
+      "sector": "decision",
+      "license": "generated in-repo (MIT)",
+      "dataset": "hand-written (datasets/sources)",
+      "rows": 399,
+      "classes": 3,
+      "labels": [
+        "approve",
+        "deny",
+        "escalate"
+      ]
+    },
+    {
+      "file": "jev-contract-risk.jsonl",
+      "name": "Jev contract risk",
+      "desc": "Contract clauses rated low, medium, or high risk for the party the reviewer represents. Hand-written, blind-verified, adjudicated.",
+      "sector": "trust",
+      "license": "generated in-repo (MIT)",
+      "dataset": "hand-written (datasets/sources)",
+      "rows": 342,
+      "classes": 3,
+      "labels": [
+        "high",
+        "low",
+        "medium"
+      ]
+    },
+    {
+      "file": "jev-claim-support.jsonl",
+      "name": "Jev claim support",
+      "desc": "Claim plus evidence passage: supported, contradicted, or insufficient. Hand-written, blind-verified (97% agreement).",
+      "sector": "scientific",
+      "license": "generated in-repo (MIT)",
+      "dataset": "hand-written (datasets/sources)",
+      "rows": 392,
+      "classes": 3,
+      "labels": [
+        "contradicted",
+        "insufficient",
+        "supported"
+      ]
+    },
+    {
+      "file": "jev-moderation-threads.jsonl",
+      "name": "Jev moderation threads",
+      "desc": "Multi-comment threads; target comment rated safe, borderline, or unsafe. Hand-written. Sexual-solicitation, doxxing and self-harm rows excluded for safety review.",
+      "sector": "trust",
+      "license": "generated in-repo (MIT)",
+      "dataset": "hand-written (datasets/sources)",
+      "rows": 299,
+      "classes": 3,
+      "labels": [
+        "borderline",
+        "safe",
+        "unsafe"
+      ]
+    }
+  ]
+}

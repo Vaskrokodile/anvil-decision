@@ -12,7 +12,7 @@ export interface Dataset {
   sector: string;
   columns: string[];
   rows: DatasetRow[];
-  source: 'import' | 'template';
+  source: 'import' | 'template' | 'starter' | 'hf';
   createdAt: string;
 }
 
@@ -123,4 +123,130 @@ export function templateRows(schema: { field: string; role: string }[], n = 24):
     for (const f of schema) row[f.field] = f.role === 'input' ? `sample ${i + 1}` : '';
     return row;
   });
+}
+
+/* ---------------- dataset health ---------------- */
+
+export interface ColumnStat {
+  name: string;
+  nonEmpty: number;
+  unique: number;
+  /** top values for label-shaped columns (≤ 64 uniques) */
+  topValues: [string, number][];
+  avgLen: number;
+}
+
+export interface DatasetHealth {
+  rows: number;
+  dupes: number;
+  colStats: ColumnStat[];
+  /** best-guess text column (highest avg length) and label column */
+  textCol: string | null;
+  labelGuess: string | null;
+  /** class counts for the guessed label column, largest first */
+  classCounts: [string, number][];
+  warnings: string[];
+}
+
+/**
+ * One pass over the rows: per-column empties/uniques/lengths, exact-duplicate
+ * count, and plain-language warnings. A column is "label-shaped" when it has
+ * 2–64 distinct values — what the trainer can actually consume.
+ */
+export function analyzeDataset(d: Dataset): DatasetHealth {
+  const n = d.rows.length;
+  const uniques = new Map<string, Map<string, number>>();
+  const sums = new Map<string, number>();
+  const nonEmpty = new Map<string, number>();
+  for (const c of d.columns) {
+    uniques.set(c, new Map());
+    sums.set(c, 0);
+    nonEmpty.set(c, 0);
+  }
+  const seen = new Set<string>();
+  let dupes = 0;
+  for (const r of d.rows) {
+    let key = '';
+    for (const c of d.columns) {
+      const v = (r[c] ?? '').trim();
+      key += `${c}\u001f${v}\u001f`;
+      const m = uniques.get(c)!;
+      m.set(v, (m.get(v) ?? 0) + 1);
+      sums.set(c, sums.get(c)! + v.length);
+      if (v) nonEmpty.set(c, nonEmpty.get(c)! + 1);
+    }
+    if (seen.has(key)) dupes++;
+    else seen.add(key);
+  }
+
+  const colStats: ColumnStat[] = d.columns.map((c) => {
+    const m = uniques.get(c)!;
+    return {
+      name: c,
+      nonEmpty: nonEmpty.get(c)!,
+      unique: m.size,
+      topValues:
+        m.size >= 2 && m.size <= 64
+          ? [...m.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8)
+          : [],
+      avgLen: n ? Math.round(sums.get(c)! / n) : 0,
+    };
+  });
+
+  const textCol =
+    colStats.length === 0
+      ? null
+      : colStats.reduce((a, b) => (b.avgLen > a.avgLen ? b : a)).name;
+  const labelGuess =
+    colStats
+      .filter((c) => c.name !== textCol && c.unique >= 2 && c.unique <= 64)
+      .sort((a, b) => a.unique - b.unique)[0]?.name ?? null;
+
+  const classCounts = labelGuess
+    ? ([...uniques.get(labelGuess)!.entries()]
+        .filter(([v]) => v !== '')
+        .sort((a, b) => b[1] - a[1]) as [string, number][])
+    : [];
+
+  const warnings: string[] = [];
+  if (dupes > 0) warnings.push(`${dupes} duplicate row${dupes === 1 ? '' : 's'}`);
+  for (const c of colStats) {
+    const empty = n - c.nonEmpty;
+    if (empty > 0 && empty / n > 0.25)
+      warnings.push(`"${c.name}" is empty in ${Math.round((empty / n) * 100)}% of rows`);
+  }
+  if (labelGuess) {
+    const top = classCounts[0];
+    if (top && top[1] / n > 0.8)
+      warnings.push(
+        `"${labelGuess}" is ${Math.round((top[1] / n) * 100)}% "${top[0]}" — imbalanced`,
+      );
+    if (classCounts.some(([, cnt]) => cnt < 5))
+      warnings.push('some classes have < 5 rows — they may not survive the val split');
+  } else {
+    warnings.push('no label-shaped column found (needs 2–64 distinct values)');
+  }
+  if (n > 512) warnings.push(`training uses the first 512 of ${n} rows`);
+
+  return {
+    rows: n,
+    dupes,
+    colStats,
+    textCol,
+    labelGuess,
+    classCounts,
+    warnings,
+  };
+}
+
+/** Return a copy with exact-duplicate rows (all columns equal) removed. */
+export function dedupeDataset(d: Dataset): Dataset {
+  const seen = new Set<string>();
+  const rows = d.rows.filter((r) => {
+    const key = d.columns.map((c) => `${c}${(r[c] ?? '').trim()}`).join('');
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  return { ...d, rows };
 }

@@ -1,0 +1,300 @@
+{"text":"Merged PR #2841 this morning; the retry logic on the webhook worker is finally stable and ready for the release cut.","label":"clean"}
+{"text":"Hi team — please direct new-hire paperwork to Marta Kessler, or call her at 555-0142.","label":"contact"}
+{"text":"Invoice INV-00931 for $4,250.00 was approved this morning and is queued for Friday's payment run.","label":"clean"}
+{"text":"Log snippet from staging: POST /pay -> 400, card 4242 4242 4242 4242 declined by the test gateway with code card_declined.","label":"financial"}
+{"text":"Whoever pasted this into the shared doc — prod DB password is 'Qu!etOtter#77' and it absolutely should not live in Confluence.","label":"credential"}
+{"text":"Signature capture from the delivery app: R. Castellan, 22 Larkspur Point Rd, Bellmare, MA 01864 — package left at side door.","label":"contact"}
+{"text":"My colleague Dave put together a really clear explainer on how the caching layer invalidates — worth a read.","label":"clean"}
+{"text":"For the refund, the vendor wants the money sent to DE89 3704 0044 0532 0130 00 with reference 'Q3 rebate' — flagging since it looks off.","label":"financial"}
+{"text":"Found in the config dump: stripe_key = sk_test_4eC39HqLyjEXAMPLE — someone committed the sandbox key again.","label":"credential"}
+{"text":"Ingrid Halvorsen's file: ingrid.halvorsen@example.com, mobile 555-0177, ships to 8 Sorrel Heights Way, Vale Harbor, OR 97501.","label":"contact"}
+{"text":"The 2.14.0 release notes are drafted in the shared drive; please flag anything missing by EOD Friday.","label":"clean"}
+{"text":"New supplier onboarding form submitted by Tomas Vrba, tomas.vrba@test.invalid.","label":"contact"}
+{"text":"Ticket TCK-20914 was escalated to tier 2 after sitting unanswered for 48 hours — owner reassigned.","label":"clean"}
+{"text":"She read the number over the phone: 5555 5555 5555 4444, expiry 12/27 — that's the Mastercard test card from QA, not a customer card.","label":"financial"}
+{"text":"Slack paste from the intern channel: 'wifi pw for this floor is guest-Sunnyside!2026' — and this is why we rotate monthly.","label":"credential"}
+{"text":"From the warranty claim: Elena Marchetti, unit 4B, 305 Brambleton Ave, Harrowgate, PA 19035.","label":"contact"}
+{"text":"Reminder: retro moved to 3pm Thursday because the all-hands ran over.","label":"clean"}
+{"text":"Wire details scribbled on the ticket: beneficiary 7741209835, routing 998877665 — looks like someone fat-fingered it anyway.","label":"financial"}
+{"text":"The answer to his security question (first street you lived on) is sitting right in the ticket: 'Wendover Crescent' — please scrub.","label":"credential"}
+{"text":"Expense report ER-1187 was approved: airfare $612.40, hotel $388.00, per diem $165.00.","label":"clean"}
+{"text":"Meet your onboarding buddy: Kwame Osei; if you can't find him on chat, try 555-0151.","label":"contact"}
+{"text":"Error: checksum failed for 'FR76 3000 6000 0112 3456 7890 189' in payout request #3381 — rejected before submission.","label":"financial"}
+{"text":"Priya flagged that the onboarding docs still reference the deprecated CLI flags from v1.","label":"clean"}
+{"text":"Paste dump in the ticket includes a JWT: eyJhbGciOiJFUzI1NiJ9.eyJ0ZXN0IjoidGVzdCJ9.dGVzdGRlbW8 — decodes to test/test, still shouldn't be there.","label":"credential"}
+{"text":"Directory update: Stefan Lindqvist moved to a new floor — 41 Quarry Row, Hale Bridge, WI 53701.","label":"contact"}
+{"text":"Our Q3 OKR review slides live under /planning/q3 in the shared drive.","label":"clean"}
+{"text":"Test transcript includes 'charge it to 6011 1111 1111 1117' — the Discover test vector, fine for staging but the scanner will trip.","label":"financial"}
+{"text":"Vendor sheet: Anouk Beaumont, anouk.beaumont@example.com, Altmeier Logistics.","label":"contact"}
+{"text":"Someone wrote the door PIN (8842) on the whiteboard in the 3rd-floor kitchen — photo attached to the incident report.","label":"credential"}
+{"text":"The refund for order ORD-55218 went through yesterday — $129.99 back to the original payment method.","label":"clean"}
+{"text":"Voicemail transcript: 'Hi, this is Harish Batra, you can call me back on 555-0184 any time before six.'","label":"contact"}
+{"text":"Dev note: when testing payouts locally use account 000123456789 with routing 987654321 — sandbox values only, never real ones.","label":"financial"}
+{"text":"Bumping the worker pool from 8 to 16 halved p99 queue latency in staging.","label":"clean"}
+{"text":"GitGuardian alert fired: ghp_EXAMPLE0000000000000000000000000000 found in yesterday's commit to the docs repo.","label":"credential"}
+{"text":"Please ship the replacement unit to Camille Fontaine, 77 Greybarrow Lane, Millwick, VT 05441 — she confirmed the address by email.","label":"contact"}
+{"text":"Log line: 2026-03-14T09:41:07Z INFO scheduler tick completed in 212ms.","label":"clean"}
+{"text":"The old form accepted 'card number' as free text — found '4111-1111-1111-1111' sitting in ticket #90210 from March.","label":"financial"}
+{"text":"Support chat: customer typed 'my login is bmartin / Blueberry!42' into the transcript before the agent could stop them.","label":"credential"}
+{"text":"We're deprecating the v1 export endpoint on Jan 15; the migration guide is up in the wiki.","label":"clean"}
+{"text":"HR referral bonus form: candidate Jonas Iversen, reachable at 555-0136.","label":"contact"}
+{"text":"Crypto payout request: 0.41 ETH to 0xDEADBEEF00000000000000000000000000CAFE — that address is a burn joke, right?","label":"financial"}
+{"text":"Signature: — Renata Salinas, Account Manager, renata.salinas88@example.com.","label":"contact"}
+{"text":"Someone left the feature flag new_checkout at 5% — was that intentional or leftover from the experiment?","label":"clean"}
+{"text":"SSN field came through the fax line as 078-05-1120 — yes, the canonical fake one, but the workflow shouldn't carry it at all.","label":"credential"}
+{"text":"Site visit card: Piotr Kaminski, Facilities Lead, 3 Corvid Bay Rd, Osterholt, WA 98312.","label":"contact"}
+{"text":"The webinar recording from last Thursday is posted on the events page.","label":"clean"}
+{"text":"Payment page paste: NAME ON CARD YUNA MATSUDA, PAN 3782 822463 10005, CVV 1234 — the Amex test vector with a made-up CVV.","label":"financial"}
+{"text":"Database seed script had AWS creds inline: AKIAIOSFODNN7EXAMPLE / wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY — the docs example pair, still a lint failure.","label":"credential"}
+{"text":"Re: catering headcount — confirm with Gabriel Ferreira at g.ferreira@example.com, 555-0148, before Thursday.","label":"contact"}
+{"text":"Desk hoteling goes live Nov 1 — book through the workplace app; the map shows which desks have monitors.","label":"clean"}
+{"text":"Emergency roster update: Nadia Chaudhry, nadia.chaudhry@example.org.","label":"contact"}
+{"text":"Refund issued to the saved account — full digits on the ticket read 4242 4242 4242 4242, please purge after processing.","label":"financial"}
+{"text":"Heads up: the staging database gets rebuilt tonight — anything not in fixtures is gone by morning.","label":"clean"}
+{"text":"His recovery email plus backup code '7T4K-99QR-XX21' are both sitting in plaintext in the onboarding doc.","label":"credential"}
+{"text":"Property manager for unit 12: Oscar Delmeyer, 88 Hollins Terrace, Ferncliff, NE 68104.","label":"contact"}
+{"text":"JIRA-8812 is a duplicate of JIRA-8790 — closing it and linking the threads.","label":"clean"}
+{"text":"Vendor master record holds NL55 BANK 0987 6543 21 — check digits never validated, which is what we want.","label":"financial"}
+{"text":"Interview loop for Thursday: candidate Freya Nilsen — the coordinator reaches her at 555-0127.","label":"contact"}
+{"text":"The runbook literally says 'sudo pw: Pr0d-R0tated!9' — rotating now, but the runbook needs a scrub.","label":"credential"}
+{"text":"PO #77812 covers 40 standing desks for the new floor; delivery is March 9.","label":"clean"}
+{"text":"Lost badge report: Idris Yeboah, ext 555-0188 — badge deactivated pending replacement.","label":"contact"}
+{"text":"Support paste: 'my card is 4111111111111111, why was it declined??' — it's the Visa test number, still, please mask it in the transcript.","label":"financial"}
+{"text":"API token pasted into the bug thread: xoxb-EXAMPLE-TOKEN-ROTATE-ME — revoked and re-issued.","label":"credential"}
+{"text":"Quote came back at $18,400 for the rooftop unit — about $2k over the approved budget.","label":"clean"}
+{"text":"Katarina Petrova, new compliance analyst — k.petrova@test.invalid, desk 555-0145.","label":"contact"}
+{"text":"Field report from the kiosk logs: customer typed PIN 4471 into the notes box instead of the PIN pad.","label":"credential"}
+{"text":"Treasury note: concentration account 5500-1122-8877-3344, internal ref CASH-EUR-02 — staging values, nothing live.","label":"financial"}
+{"text":"We billed 34.5 hours against project code PX-2210 last sprint.","label":"clean"}
+{"text":"Registration export row: 'Leon Duvall','leon.duvall@example.com','Fern Hollow, AK'.","label":"contact"}
+{"text":"Security questionnaire answers pasted raw: mother's maiden name Featherstone; first school Larkspur Elementary — these are someone's real answers, redact.","label":"credential"}
+{"text":"The badge reader on floor 3 is being replaced over the weekend.","label":"clean"}
+{"text":"From the RSVP list: Sana Qureshi, 555-0111, plus one guest.","label":"contact"}
+{"text":"SEPA transfer stub: beneficiary M. Travers, ES12 1234 5678 9012 3456 7890, amount EUR 1,940.00.","label":"financial"}
+{"text":"Slack DM screenshot: 'try password WinterIsComing!! on the demo box' — shared demo passwords are still passwords.","label":"credential"}
+{"text":"Parking lot B closes for resurfacing Oct 20–24; please use the garage annex.","label":"clean"}
+{"text":"Volunteer coordinator Marc Travers, mobile 555-0133.","label":"contact"}
+{"text":"Old payment export leaked into the ticket: '4111 1111 1111 1111 12/26 999' — test PAN plus a fake CVV, masking job queued.","label":"financial"}
+{"text":"Auth log paste: Basic YWRtaW46aHVudGVyMg== — that's admin:hunter2 base64'd, which is somehow worse.","label":"credential"}
+{"text":"Alina Zimmermann, Zimmermann Consulting, 7 Westbrook Mews, Cole Harbor, VT 05452 — signed the visitor log.","label":"contact"}
+{"text":"The changelog entry for 4.2.1 mentions the CSV export fix and the date-format regression.","label":"clean"}
+{"text":"Please move the escrow balance to GB00 TEST 0404 7556 7801 11 — test IBAN from the QA sheet, amounts up to 5k only.","label":"financial"}
+{"text":"Daycare pickup authorization: Diego Alvarado, relationship uncle, cell 555-0191, diego.alv@example.com.","label":"contact"}
+{"text":"Her notes app has 'email pw: sunnyside!2024' pinned at the top — crop that before it goes anywhere.","label":"credential"}
+{"text":"Open enrollment starts Monday; the benefits FAQ is already on the intranet.","label":"clean"}
+{"text":"New building entry: Britta Johansen, property admin, 23 Millrace Court, Eastlake, MN 55011.","label":"contact"}
+{"text":"Wire instruction fax: account 330198774512, ABA 999000111 — flag for verification, the numbers look made up anyway.","label":"financial"}
+{"text":"Support ticket #4410 body: 'reset me pls, my ssn is 900-12-3456' — invalid series, but scrub it anyway.","label":"credential"}
+{"text":"Board minutes appendix: Farid Haddad (555-0166) volunteered as interim secretary.","label":"contact"}
+{"text":"The status page showed green across all regions as of 09:00 UTC.","label":"clean"}
+{"text":"BTC donation page source has bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh hardcoded — that's the BIP173 test vector, not a real wallet.","label":"financial"}
+{"text":"New-hire setup sheet includes 'temp login: Welcome-2026!' — make sure they rotate at first login.","label":"credential"}
+{"text":"Contract courier details: Grace Whitcombe, 14 Aldercroft Mews, Dunbar Falls, NH 03224.","label":"contact"}
+{"text":"CPU saturation on node-14 cleared after we killed the runaway compaction job.","label":"clean"}
+{"text":"Card-on-file migration report: 3,412 tokens moved; row 88 still holds a raw 5555 5555 5555 4444 from legacy imports.","label":"financial"}
+{"text":"Env file pasted in the bug report: SESSION_SECRET=correct-horse-battery-staple-99 — scrubbed and rotated.","label":"credential"}
+{"text":"Emre Yilmaz — eyilmaz@example.com — (555) 0139 — will handle permits for the Cedarbrook site.","label":"contact"}
+{"text":"FY27 planning: a headcount request of 3 was approved for the platform team.","label":"clean"}
+{"text":"Accounting note: payee sort 08-88-99, account 6604120-DE — double-check before Friday's batch.","label":"financial"}
+{"text":"Maeve O'Donnell rsvp'd for the open house — maeve.odonnell@test.invalid.","label":"contact"}
+{"text":"Leaked in the transcript: 'security answer = Biscuit (my first dog)' — a real recovery answer sitting in plaintext.","label":"credential"}
+{"text":"Standup note: the canary deploy held at 10% overnight with no error spike — promoting to 50% after lunch.","label":"clean"}
+{"text":"Shipping manifest correction: consignee is Petra Vargas, 510 Kettlebrook Dr, Unit 7, Saltmeadow, TX 77841.","label":"contact"}
+{"text":"can someone pick up BUG-6602 while I'm out? it's a one-line fix in the date parser","label":"clean"}
+{"text":"Payment retry log: attempt 3 of 3 for card 4000 0000 0000 0002 — the generic-decline test card, working as intended.","label":"financial"}
+{"text":"Root cause of the breach scare: a bearer token 'Bearer EXAMPLE0000000000000000000000000000' sat in the docs for a month.","label":"credential"}
+{"text":"Address verification callback: Hugo Rossetti confirmed 9 Fenwick Ridge Ct, Brindleford, IL 60410 as his mailing address.","label":"contact"}
+{"text":"Ask Marcus — he ran the data migration last quarter and knows where the edge cases hide.","label":"clean"}
+{"text":"Draft invoice footer still lists our old bank details: sort 20-14-55, account 12345678 — update before it goes out.","label":"financial"}
+{"text":"The postmortem doc accidentally embeds the grafana admin api key: eyJrIjoiNmt4eHh4eHh4eCIsIm4iOiJ0ZXN0IiwiaWQiOjF9 — rotate and purge.","label":"credential"}
+{"text":"From the clinic intake form: Selma Ibrahimi, DOB left blank, 555-0107 after 5pm.","label":"contact"}
+{"text":"The badge-office queue was 20 deep this morning; contractor badges now need a sponsor signature.","label":"clean"}
+{"text":"Press inquiry forwarded: Anton Grigorovich, anton.g@pressmail.example.com — asking for comment on the launch.","label":"contact"}
+{"text":"Ledger line from the test harness: debit acct 9988-0011-2233, credit acct 9988-0011-4455, amount 0.01 — synthetic both sides.","label":"financial"}
+{"text":"Thanks to Ana for covering the support rotation over the holiday weekend.","label":"clean"}
+{"text":"Password spray attempt logged: tried 'Spring2026!' against 40 accounts — it's also, unfortunately, still our marketing team's shared password.","label":"credential"}
+{"text":"Wedding venue point person: Tessa Underhill, 555-0160 — prefers a text before noon.","label":"contact"}
+{"text":"Pasted from the chargeback case: original charge on 4111 1111 1111 1111 for USD 89.99, dispute reason 'unrecognized'.","label":"financial"}
+{"text":"The survey closes Friday; we're at 68% response rate across the org.","label":"clean"}
+{"text":"Milo Drummond, facilities lead for the annex, has his mailing address on file at 16 Sawtell Road, Brinkworth, OR 97232.","label":"contact"}
+{"text":"Incident channel paste: 'db read replica pw = Repl!cate-Me-2' — infra already rotated it, but the paste is still in history.","label":"credential"}
+{"text":"The mock SEPA file has creditor IBAN 'DE44 5001 0517 5407 3249 31' — that's a published docs example, swap it for a zeroed one.","label":"financial"}
+{"text":"Looping in Sam, who owns the ingestion pipeline and can answer the schema questions.","label":"clean"}
+{"text":"Zofia Pawlak — zofia.pawlak@test.invalid — called twice about the quote; her cell is 555-0117.","label":"contact"}
+{"text":"The demo slide deck shows 'Authorization: token glpat-EXAMPLE0000000000000' in a code block — gitlab PAT, revoked.","label":"credential"}
+{"text":"Note in the CRM: client wants the refund to a different bank — GB82 WEST 1234 5698 7654 32 — flag for finance review.","label":"financial"}
+{"text":"Fire drill Wednesday at 10am; the muster point is the north courtyard.","label":"clean"}
+{"text":"Equipment handoff signed by Bruno Castellan (bruno.castellan@example.com) at 19 Mossbank Terrace, Wetherfield, CT 06109.","label":"contact"}
+{"text":"ACH batch file header shows company account 77-0044112 and routing 111111118 — the routing prod rejected correctly.","label":"financial"}
+{"text":"Reminder that visitor badges must be returned to the front desk at day's end.","label":"clean"}
+{"text":"Compliance flagged the spreadsheet: column H has 'SSN 666-45-6789' as a sample — the 666 prefix means it was never issued, still violates policy.","label":"credential"}
+{"text":"Emergency facilities tree: primary Ines Moreau, 555-0180; secondary listed below.","label":"contact"}
+{"text":"Customer pasted their wallet address for the airdrop: tb1q9z4k2x8v6n5m3c7d4f2g1h0j9l8s6a5p4o3i — testnet format anyway.","label":"financial"}
+{"text":"The parent room on 2 is now bookable through the room system like everything else.","label":"clean"}
+{"text":"Left in a code comment: 'TODO remove before ship — aws_secret = wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY' — it shipped.","label":"credential"}
+{"text":"Kofi Mensah — kofi.mensah33@example.com — 555-0158 — is the tenant rep for the 4th-floor buildout.","label":"contact"}
+{"text":"Chargeback evidence bundle includes 5555 5555 5555 4444 in plain text on page 2.","label":"financial"}
+{"text":"Translation review for the German UI strings is scheduled for next sprint.","label":"clean"}
+{"text":"Lena Hartmann, venue manager — l.hartmann@example.com — confirmed load-in starts at 7am.","label":"contact"}
+{"text":"The shared vault item was exported to csv and attached here: 'staging db','dbadmin','Tr0ub4dor&3-horse' — deleted and reported.","label":"credential"}
+{"text":"The espresso machine in the 4th-floor kitchen is fixed — rejoice responsibly.","label":"clean"}
+{"text":"Vendor update form lists bank 'Harbor Trust NA', account 0033445566, SWIFT FOOBUS33 — the bank name is made up, the numbers look real.","label":"financial"}
+{"text":"Viktor Ashworth (loading dock, 9 Dockside Road, Port Calden, ME 04468) says the pallet needs a signature from someone onsite.","label":"contact"}
+{"text":"Screenshot in the design review shows the staging login as demo@example.com / DemoPass!2026 — flagging since it's an actual working account.","label":"credential"}
+{"text":"Warehouse notified: pallet 12 of the shipment was shorted by 6 units.","label":"clean"}
+{"text":"From: Amara Diallo <amara.diallo@example.org> — following up on the lease renewal.","label":"contact"}
+{"text":"The test suite seeds a fake bitcoin address mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZNo — canonical testnet value, keep it out of prod docs.","label":"financial"}
+{"text":"The sellers' counsel on the Millwick parcel is Casper Thornbury — casper.t@thornbury-legal.example.com.","label":"contact"}
+{"text":"Her one-time recovery codes for prod access are literally listed in the ticket: 8821-0045, 6610-3392, 7745-1208 — all now burned.","label":"credential"}
+{"text":"Cost center 88-Delta absorbed the $2,700 hardware overage this quarter.","label":"clean"}
+{"text":"Yuki Tanabe — (555) 0114 — confirmed as the interpreter for Tuesday's walkthrough.","label":"contact"}
+{"text":"Reconciliation break: expected account 2210 5566 7788 9900 but found 2210 5566 7788 0044 in the file — transposed somewhere.","label":"financial"}
+{"text":"The training video for the returns flow is about 11 minutes long.","label":"clean"}
+{"text":"Pasted into chat during the outage: 'ssh root@10.0.4.22 password R00tAccess!9' — infra killed the box an hour later.","label":"credential"}
+{"text":"Omar El-Sayed, site superintendent, 33 Kilnworth Lane, Dunmere, CO 80504 — needs the revised drawings before Friday.","label":"contact"}
+{"text":"Support email includes a photo: 'my card ends 4242? no wait the full number is 4242-4242-4242-4242' — the Stripe test PAN.","label":"financial"}
+{"text":"Docs feedback: the quickstart assumes Docker 24+, please add a note for older installs.","label":"clean"}
+{"text":"Translation coordination for the Prague team goes through Hana Novak, hana.novak@example.com, 555-0123.","label":"contact"}
+{"text":"Ticket attachment 'passwords.xlsx' — row 1 reads prod-admin / 9f$Kp2!vLx — the user uploaded their whole password sheet by mistake.","label":"credential"}
+{"text":"Payment link debug: tokenized card resolves to 4111 1111 1111 1111 — Luhn-valid, safe for staging.","label":"financial"}
+{"text":"New blog post on query tuning went live this morning.","label":"clean"}
+{"text":"Ruben Espinoza is handling permits while Rosa is out; he's at ruben.espinoza@example.org.","label":"contact"}
+{"text":"Validator output for input 'IT60 X054 2811 1010 0000 0123 456' says valid format, check digits zeroed.","label":"financial"}
+{"text":"The contract renewal is flat versus last year at $96,000 annually.","label":"clean"}
+{"text":"Volunteer crew lead for the shoreline survey: Astrid Korhonen, 555-0156.","label":"contact"}
+{"text":"Found in the wiki history: 'prod openai key: sk-proj-EXAMPLE0000000000000000000000000000' — page now purged.","label":"credential"}
+{"text":"Wire recall request references originating account 8842-1190-3355-7766 at 'First Fictional Savings' — verify nothing matches prod.","label":"financial"}
+{"text":"Call me at the office when you land — I'll be at my desk till six.","label":"clean"}
+{"text":"Saturday's site tour has a backup lead: Felix Marchetti, f.marchetti@example.com.","label":"contact"}
+{"text":"He attached a login URL with credentials baked in: https://deploy:S3cur3-Jenk!n5@ci.internal.example.com — revoke it.","label":"credential"}
+{"text":"Jamie from design wants to sit in on Thursday's planning call.","label":"clean"}
+{"text":"Treasury ops handoff: 'parking account 55-22110-9, routing 777000888 — intra-day sweep only' — staging treasury values.","label":"financial"}
+{"text":"Inspector assigned to the water-damage claim: Daria Sokolov — onsite Tuesday, number on file 555-0135.","label":"contact"}
+{"text":"Auto-log capture: 'Enter passphrase for key /root/.ssh/id_rsa:' followed by 'm0on-Unit-alpha7' typed at the prompt.","label":"credential"}
+{"text":"Nadia volunteered to write the postmortem — due out Wednesday afternoon.","label":"clean"}
+{"text":"Check image OCR output: 'PAY TO THE ORDER OF Acme Fixtures $1,204.55 / 0999:112233: 44556677' — MICR line from the test check.","label":"financial"}
+{"text":"Please add Nils Berggren to the maintenance notification list: nils.b@example.com.","label":"contact"}
+{"text":"Helpdesk transcript: 'I always forget — is my unlock PIN my birthday? it's 0219' — user typed their PIN straight into chat.","label":"credential"}
+{"text":"Per our chat with Olu, the partner API quota doubles in January.","label":"clean"}
+{"text":"Fraud queue note: 4242 4242 4242 4242 appears in 3 chargebacks — same number every time, so these are QA cases.","label":"financial"}
+{"text":"Paloma Reyes — paloma.reyes7@example.com — (555) 0198 — runs the neighborhood tool-lending program.","label":"contact"}
+{"text":"CI/CD variable dump: NPM_TOKEN=npm_EXAMPLE0000000000000000000000000000 — masked in logs but echoed into the ticket.","label":"credential"}
+{"text":"IT is swapping everyone's docking stations next week — sign up for a slot.","label":"clean"}
+{"text":"Cedric Halloran sent the 3-week quote for the lobby refit (cedric.h@halloran-builds.example.com).","label":"contact"}
+{"text":"Payment-form validation report: '6011-0009-9013-9424' passes Luhn (Discover test number) — allowed only on staging.","label":"financial"}
+{"text":"Scribbled on the post-it in the photo: 'ATM pin 5570 / garage 1180' — both real codes per the owner, redact.","label":"credential"}
+{"text":"Wei is interviewing candidates for the data role all next week.","label":"clean"}
+{"text":"Shelter after-hours point is Miriam Abebe; write miriam.abebe@example.org.","label":"contact"}
+{"text":"Subledger import error: '0000-1111-2222-3333' rejected — the zero-prefixed account isn't allowed in prod files.","label":"financial"}
+{"text":"Exchange-student arrivals are coordinated by Theo Lefevre, 14 Lindrow Street, Marsh Bend, KY 42054.","label":"contact"}
+{"text":"The wiki page for 'legacy FTP' still lists: user deployftp, pass Ftp4Lyfe! — account still active, unbelievable.","label":"credential"}
+{"text":"Quiet hours in the library zone are now 1–4pm daily.","label":"clean"}
+{"text":"Reference photos from the quarry site were shot by Wren Kavanagh — wren.kavanagh@example.com, 555-0185.","label":"contact"}
+{"text":"Settlement file row: MERCHANT 4421 | 5555 5555 5555 4444 | 44.10 USD — the MC 'insufficient funds' decline.","label":"financial"}
+{"text":"Onboarding checklist item 12 literally says 'share the shared-mailbox pw (SunShine-99!) with your mentor' — policy violation, flagged.","label":"credential"}
+{"text":"Your trial workspace was extended by 14 days as requested.","label":"clean"}
+{"text":"Lucia Paredes (lucia.paredes@example.org) confirmed the mural unveiling on the 9th.","label":"contact"}
+{"text":"FX desk note: counterparty settlement IBAN 'AE00 0331 2345 6789 0123 456' — zeroed check digits, dummy for the DR drill.","label":"financial"}
+{"text":"Voicemail transcript ends with 'oh and my voicemail PIN is 3321 in case you need to check messages' — strip it.","label":"credential"}
+{"text":"Tomasz said the Polish translations ship with the next minor release.","label":"clean"}
+{"text":"Stellan Dahl — stellan.dahl@test.invalid — 555-0140 — is your liaison for the Bergen move.","label":"contact"}
+{"text":"Retro action item: write the runbook for the queue-drain procedure and link it from the on-call page.","label":"clean"}
+{"text":"Refund path on ticket #55817 shows 4111 1111 1111 1111 — mask before export.","label":"financial"}
+{"text":"The offsite venue is booked for June 3–5, capacity 120, two breakout rooms included.","label":"clean"}
+{"text":"Permit applicant of record: Inbar Cohen, 28 Thistledown Way, Rookery Hill, CO 80112.","label":"contact"}
+{"text":"Treasury cutover checklist item 6: update standing instructions to AT61 1904 3002 3457 3201 — copied from the workbook.","label":"financial"}
+{"text":"Reminder: never paste API keys or passwords into tickets — use the vault share link instead.","label":"clean"}
+{"text":"otlp collector config leaked: 'Authorization: Basic c3RhZ2luZzpTdXBlclMzY3JldCE=' — that's staging:SuperS3cret! encoded.","label":"credential"}
+{"text":"New distributor liaison Elif Demirci, 5 Lantern Court, Istanbul 34710.","label":"contact"}
+{"text":"The card-present lane still prints 'card 5555 5555 5555 4444' on the receipt header.","label":"financial"}
+{"text":"Our main queue depth alarm threshold moved from 5k to 8k after the batch window grew.","label":"clean"}
+{"text":"Warranty registration: Soren Bakken — soren.bakken@example.com — 555-0190, unit serial noted separately.","label":"contact"}
+{"text":"DSN pasted straight into the error report: postgres://reporting:Hunt3rTwo!@db.internal.example.com:5432/prod — rotate that user.","label":"credential"}
+{"text":"SEPA bulk file line 42: debtor account DE00 7001 0080 0123 4567 89 — docs-derived dummy, fine for the demo.","label":"financial"}
+{"text":"The failing health check is on 10.2.33.40:8443 — needs a security-group change, not a code fix.","label":"clean"}
+{"text":"Site visit sign-in: Noor Abbasi, 60 Heron Walk, Pell City, AL 35125, hard hat size M.","label":"contact"}
+{"text":"Charge on the corp statement lookup tool returned merchant 'DEMO STORE 0042' for 4242 4242 4242 4242.","label":"financial"}
+{"text":"Grafana shows p50 latency steady at 180ms since the covering index shipped.","label":"clean"}
+{"text":"Someone checked in a file called secrets.bak with 'SMTP_PASS=BlueJay!2026!' — CI is failing on the scanner now.","label":"credential"}
+{"text":"Cheers, Dmitri Volkov — Office of the CTO — dmitri.volkov@example.com","label":"contact"}
+{"text":"Wire template on the shared drive: beneficiary 998877665544, SWIFT QZBNKDE2 — not live numbers, but keep it in the vault anyway.","label":"financial"}
+{"text":"Trace id 3f9b2c44-7c1a-4b7e-9d2f-8a1c5e6b7d8f shows the 500 originated at the cart service.","label":"clean"}
+{"text":"For the tower job, talk to the subcontractors' rep Pavel Nowak — pavel.nowak@example.com or +1 555-0179.","label":"contact"}
+{"text":"Support paste from the user: 'my otp won't work, the secret is JBSWY3DPEHPK3PXP if that helps' — reset their TOTP anyway.","label":"credential"}
+{"text":"Old direct-debit mandate scan: account holder R. Anand, account 12-34-56-78901234, ref MND-0031 — digitized during the archive project.","label":"financial"}
+{"text":"Two open reqs just posted internally: platform engineer and developer advocate.","label":"clean"}
+{"text":"The board packet went out Monday — agenda items 4 through 7 are all budget lines.","label":"clean"}
+{"text":"The payment sandbox returns token tok_visa_debit_4242 for PAN 4242424242424242 — the docs call it the canonical test pair.","label":"financial"}
+{"text":"Vendor SOC 2 report was received and filed; the renewal questionnaire is due in Q1.","label":"clean"}
+{"text":"Screen-share freeze-frame caught his vault open — visible entry: prod-vault / m4st3r-K3y-Orion! — reported.","label":"credential"}
+{"text":"Silas Brandt of Brandt Media wants a quote for the winter campaign — silas.b@brandt-media.example.com.","label":"contact"}
+{"text":"FX settlement instruction: beneficiary IBAN CH00 0900 0000 8765 4321 9 — zeroed checks, DR-test account.","label":"financial"}
+{"text":"The all-hands survey got 214 responses — up from 180 last quarter.","label":"clean"}
+{"text":"Best regards, Odile Marchand, Customer Success — odile.m@example.org — booked your renewal call for Tuesday.","label":"contact"}
+{"text":"Decline-code testing: card 4000 0000 0000 9995 returns insufficient_funds — a published test PAN.","label":"financial"}
+{"text":"It's Hamish's birthday Friday — cake in the kitchen at 3, don't spoil the surprise.","label":"clean"}
+{"text":"Photo of a napkin in the expense upload: 12 words starting 'crumble orbit velvet anchor' — a wallet seed phrase, treat as compromised.","label":"credential"}
+{"text":"Henrik Voss — 18 Tallow Quay, Port Sayer, ND 58705 — sent the countersigned addendum.","label":"contact"}
+{"text":"Token migration audit: 2 legacy numbers still in field notes — 4242 4242 4242 4242 (Visa) and 5555 5555 5555 4444 (Mastercard).","label":"financial"}
+{"text":"The cafeteria is piloting a new menu rotation next month — feedback form at the register.","label":"clean"}
+{"text":"Paste in the incident doc: 'ansible_vault pw = V4ult-0f-Secrets!' — the file it unlocks is also in the repo.","label":"credential"}
+{"text":"Friday's panel is confirmed: Aisha Bello will attend (aisha.bello@example.com).","label":"contact"}
+{"text":"Remittance advice: pay to BE71 0961 2345 6769 — the vendor master lines up, check digits stripped.","label":"financial"}
+{"text":"The RFC for the event-sourcing rewrite is open for comments until Friday.","label":"clean"}
+{"text":"Mateus Rocha, 27 Azulejo Alley, Lisbon 1100-012, runs the warehouse receiving desk.","label":"contact"}
+{"text":"Support call note: the customer read out their PIN 'for verification' — 7741 — the agent should have stopped them.","label":"credential"}
+{"text":"Sandbox payout batch: 12 rows, all to acct 000111222333 / routing 555000111 — the fixed test pair from the QA harness.","label":"financial"}
+{"text":"Docs sample profile: Ruth Adeyemi, ruth.adeyemi@example.com — a made-up person, so no real address appears anywhere.","label":"contact"}
+{"text":"Gisela Kraft, 12 Morgenthal Mews, Berlin 10115, approves vendor invoices.","label":"contact"}
+{"text":"Crypto treasury slip: send 0.02 BTC to bc1qdemo0000xyzz9fakeaddressforunittestsonly — it fails checksum anyway.","label":"financial"}
+{"text":"The onboarding video frame at 0:42 shows the trainer's screen: WiFi CorpGuest / pw GuestNet-2026! — refilm or blur it.","label":"credential"}
+{"text":"Maintenance window approved for Sunday 02:00–04:00 UTC.","label":"clean"}
+{"text":"The canal building's owner rep is Bram Decker, 4 Lockgate Row, Ashby Wharf, ME 04015.","label":"contact"}
+{"text":"Invoice portal bug: entering 'NL12 RABO 0123 4567 89' triggers a false-positive duplicate warning — standard docs sample.","label":"financial"}
+{"text":"Write to data-team@example.org for dashboard access — the alias reaches the whole analytics group.","label":"clean"}
+{"text":"Jenkinsfile on the feature branch: env.DOCKER_PASS = 'Trawler-88!Fish' — committed plaintext again.","label":"credential"}
+{"text":"Monday's safety-log audit will be run by Leila Nazari of 90 Brightwater Close, Gilmont, VT 05656.","label":"contact"}
+{"text":"Payroll anomaly report: two rows share the same test acct 1122334455 — placeholder data leaked from the seed script.","label":"financial"}
+{"text":"Beta cohort #3 kicks off Monday — 40 customers, two-week feedback cycle.","label":"clean"}
+{"text":"Conor Byrne is driving the equipment trailer to the fairgrounds, 77 Oakhurst Drive, Millbrook, PA 16932.","label":"contact"}
+{"text":"Screenshot in the UX report caught a browser autofill preview — admin@example.com / letmein-2019 — crop it.","label":"credential"}
+{"text":"Direct-deposit enrollment form scan: employee wrote account 9988-7766-55 and routing 066555001 — flagged, the run looks sequential.","label":"financial"}
+{"text":"The travel policy now requires passport details be entered via the HR portal, never over email.","label":"clean"}
+{"text":"Custom brackets quote is coming this week from Anselm Roth at Roth Fabrication, 300 Forge Lane, Tullbridge, OH 44067.","label":"contact"}
+{"text":"PCI scope review: the QA notes field stored '4111 1111 1111 1111 exp 01/29' — test PAN plus a date, still in scope.","label":"financial"}
+{"text":"Bisect says the regression landed in a1b2c3d4 — the retry-refactor commit.","label":"clean"}
+{"text":"The kiosk config export carries 'wifi_psk=Sunnyside-Mall-9' in plaintext — rotate the network key.","label":"credential"}
+{"text":"Catering logistics for the summit: Yael Peretz, 19 Linden Gate, Riverbend, OR 97401.","label":"contact"}
+{"text":"Ledger lines in the demo env: suspense account 66-77-88-99-12, contra account 12-11-22-33-44 — never post to these in prod.","label":"financial"}
+{"text":"Vendor asked for our bank details over email — finance says to use the secure portal link instead.","label":"clean"}
+{"text":"Saoirse Nelligan — saoirse.n@example.com — is the registrar for the winter cohort.","label":"contact"}
+{"text":"Slack thread: 'anyone remember the staging basic-auth creds? it's preview / Pr3v13w-2026' — now everyone does.","label":"credential"}
+{"text":"Card art mockup review: the design team rendered '4111 1111 1111 1111' on the hero card image — test PAN, but swap it for dots.","label":"financial"}
+{"text":"The intern project demos run Thursday 2–4pm in the auditorium.","label":"clean"}
+{"text":"Driver schedule questions go to Tariq Azmi, 6 Cordwainer Road, Halden Mills, IA 50132.","label":"contact"}
+{"text":"The ITSM change record lists the service account password 'svc-backup / B@ckup-Me-0nce' in the implementation notes.","label":"credential"}
+{"text":"IBAN cleanup job report: 'PL00 1090 1014 0000 0712 1981 2874' flagged as a docs example — quarantined.","label":"financial"}
+{"text":"Printer's MAC 00:1A:2B:3C:4D:5E is now whitelisted on the corp VLAN.","label":"clean"}
+{"text":"Wanda Lis, 52 Cantor Street, Pinehurst, NC 28374 — confirmed the venue for the spring recital.","label":"contact"}
+{"text":"The README in the demo repo still says 'login with admin / c0rrectHorse!' — it's a real account on the demo site.","label":"credential"}
+{"text":"Expense tool export row: 'MEAL,42.50,USD,4111-1111-1111-1111' — the card column is why this export needs masking.","label":"financial"}
+{"text":"The policy grandfather clause applies to accounts opened before 1962-04-15.","label":"clean"}
+{"text":"Badge lookup by employee ID 44712 returned two matches — dedupe ticket opened with IT.","label":"clean"}
+{"text":"The fax cover sheet lists 'conf mailbox pin: 8834' — wait, scratch that, the pin field should have stayed blank.","label":"credential"}
+{"text":"The community garden plots are assigned by lottery — the waitlist opens March 1.","label":"clean"}
+{"text":"The lobby tile work quote came in under budget — work starts after the holiday closure.","label":"clean"}
+{"text":"Wire recall form: original credit account GB29 LOYD 3099 3800 1234 56 — sort code embedded, obviously made up.","label":"financial"}
+{"text":"The quarterly business review deck is at v9 — finance signed off on the revenue slides.","label":"clean"}
+{"text":"Env dump in the bug ticket: STRIPE_SECRET=sk_live_EXAMPLE4eC39HqLyj — copied from a vendor sample page, still a finding.","label":"credential"}
+{"text":"Celine Aubert, 8 Brenton Quay, Nantes 44000 — translating the signage.","label":"contact"}
+{"text":"Refund spreadsheet includes raw account digits '55779900-11' next to vendor names — the mask job missed a column.","label":"financial"}
+{"text":"Booking ref BK-4451 gets you into the 4th-floor huddle room — it's on the calendar invite.","label":"clean"}
+{"text":"Niko Virtanen, 44 Lantern Reach, Helsinki 00100 — your liaison for the satellite team.","label":"contact"}
+{"text":"Support will never ask for your password — the new macro reminds customers of that upfront.","label":"clean"}
+{"text":"Demo env refresh scheduled for Sunday; fixture data reloads from the seed bucket overnight.","label":"clean"}
+{"text":"The wellness survey asks about sleep habits; responses are anonymous per the FAQ.","label":"clean"}
+{"text":"The workshop agenda is set: intros, threat modeling, break, then the tabletop exercise.","label":"clean"}
+{"text":"Shoutout to Imogen for the cleanest handoff doc I've ever received.","label":"clean"}
+{"text":"Anything sent to support@example.com lands in the shared triage queue — no personal inbox involved.","label":"clean"}
+{"text":"Sandbox IBAN in the QA notes: CY12 0020 0128 0000 0012 3456 7890 — docs fixture, keep it out of prod tickets.","label":"financial"}
+{"text":"Settlement report footnote: merchant account 88-001122-3344 held for review — placeholder entity from the reconciliation fixture.","label":"financial"}

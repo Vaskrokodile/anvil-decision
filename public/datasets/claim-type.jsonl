@@ -1,0 +1,280 @@
+{"text":"We hypothesize that instruction tuning improves cross-lingual transfer even for languages absent from the pretraining corpus.","label":"hypothesis"}
+{"text":"We fine-tuned the 6-layer encoder on 1.2M sentence pairs for three epochs with cosine decay.","label":"method"}
+{"text":"Accuracy improved by 12 points over the strongest baseline on the held-out benchmark.","label":"result"}
+{"text":"Our evaluation covers only English and five high-resource European languages.","label":"limitation"}
+{"text":"If attention heads specialize by syntax, then masking subject-verb heads will degrade agreement accuracy disproportionately.","label":"hypothesis"}
+{"text":"The corpus was filtered by perplexity thresholds computed under a KenLM trigram model.","label":"method"}
+{"text":"The distilled model retained 97% of teacher performance at a quarter of the inference cost.","label":"result"}
+{"text":"The benchmark does not test reasoning beyond two compositional steps.","label":"limitation"}
+{"text":"We conjecture that retrieval augmentation benefits tail knowledge more than frequent facts.","label":"hypothesis"}
+{"text":"We trained all baselines with identical hyperparameters and report the median of five seeds.","label":"method"}
+{"text":"We observed a consistent degradation in factual recall as context length increased.","label":"result"}
+{"text":"Because the corpus predates 2024, findings speak only to older model behavior.","label":"limitation"}
+{"text":"It is plausible that quantization to 4 bits preserves downstream accuracy when calibration data matches the deployment domain.","label":"hypothesis"}
+{"text":"Annotations were collected from three raters per example, with adjudication on disagreement.","label":"method"}
+{"text":"Retrieval augmentation reduced hallucination rates from 18% to 6% on the evaluation set.","label":"result"}
+{"text":"Human evaluation was limited to 200 examples per system, which bounds statistical power.","label":"limitation"}
+{"text":"We predict that chain-of-thought prompting will fail on tasks requiring spatial rather than verbal reasoning.","label":"hypothesis"}
+{"text":"We used the 91% validation accuracy from the pilot run as a stopping criterion for the full sweep.","label":"method"}
+{"text":"The ablation shows that two attention heads account for most of the agreement signal.","label":"result"}
+{"text":"The absolute gains are small and could partly reflect benchmark contamination.","label":"limitation"}
+{"text":"Our central claim, tested below, is that curriculum ordering matters more than dataset size.","label":"hypothesis"}
+{"text":"Following the evaluation protocol of prior work, we measured F1 under both strict and relaxed matching.","label":"method"}
+{"text":"Error analysis revealed that 40% of failures involved rare entity types.","label":"result"}
+{"text":"Our analysis treats attention weights as explanation, which remains contested.","label":"limitation"}
+{"text":"We expect domain-adaptive pretraining to reduce entity-recognition errors on clinical text.","label":"hypothesis"}
+{"text":"The adapter modules were inserted after each feed-forward layer and trained while the backbone stayed frozen.","label":"method"}
+{"text":"Fine-tuned models outperformed few-shot baselines on 14 of 17 tasks.","label":"result"}
+{"text":"No experiment here excludes that the reward model's biases shaped the learned policy.","label":"limitation"}
+{"text":"If the lottery ticket hypothesis holds for adapters, sparse subnetworks at initialization will match full fine-tuning.","label":"hypothesis"}
+{"text":"We translated the test set into the eleven target languages with a commercial MT system, then verified 5% manually.","label":"method"}
+{"text":"We found that scaling data improved robustness more than scaling parameters did.","label":"result"}
+{"text":"The method assumes access to paired data, which many low-resource settings lack.","label":"limitation"}
+{"text":"We reasoned that noise-tolerant labels yield a classifier robust to annotation drift.","label":"hypothesis"}
+{"text":"To isolate memorization, we duplicated 10% of the training examples with corrupted labels.","label":"method"}
+{"text":"Calibration error dropped sharply after temperature scaling on the dev split.","label":"result"}
+{"text":"Results on synthetic data are a weak guide to naturally occurring distribution shifts.","label":"limitation"}
+{"text":"The motivating intuition is that embeddings of code and prose converge given enough paired data.","label":"hypothesis"}
+{"text":"Retrieval ran over a 20M-document index with dual-encoder dot-product search.","label":"method"}
+{"text":"Human raters preferred the proposed outputs in 62% of pairwise comparisons.","label":"result"}
+{"text":"The study does not address whether improvements persist under adversarial prompting.","label":"limitation"}
+{"text":"Our bet is that larger context windows help documents with late-resolving references far more than short ones.","label":"hypothesis"}
+{"text":"We paired each prompt with three sampled completions and scored them with the reward model.","label":"method"}
+{"text":"Longer training produced diminishing returns beyond roughly 60B tokens.","label":"result"}
+{"text":"We report averages that mask substantial variance across domains.","label":"limitation"}
+{"text":"A natural extension of prior work predicts that model merging preserves both parent skills under mild conditions.","label":"hypothesis"}
+{"text":"The dataset was split by speaker so that no voice appears in both train and test partitions.","label":"method"}
+{"text":"The treatment group showed a 3.2-point greater reduction in symptom scores at week 8.","label":"result"}
+{"text":"While the model achieves strong benchmark scores, its gains are confined to English-centric tasks.","label":"limitation"}
+{"text":"Intermittent dosing, we hypothesized, keeps efficacy intact while cutting renal toxicity.","label":"hypothesis"}
+{"text":"We enrolled 212 adults with stage II hypertension across four outpatient clinics.","label":"method"}
+{"text":"Mortality at 90 days was lower in the intervention arm, though the confidence interval crossed 1.","label":"result"}
+{"text":"The sample was predominantly male, which limits applicability to women.","label":"limitation"}
+{"text":"Stratifying patients by expression level ought to expose differential response if the biomarker is causal.","label":"hypothesis"}
+{"text":"Participants were randomized 1:1 to the intervention or usual care, stratified by site and baseline severity.","label":"method"}
+{"text":"We observed no significant difference in the primary endpoint between dosing schedules.","label":"result"}
+{"text":"Follow-up of 12 weeks is too short to assess long-term safety.","label":"limitation"}
+{"text":"We bet the telerehabilitation arm matches in-person therapy on the primary endpoint.","label":"hypothesis"}
+{"text":"Blood samples were collected at baseline, week 6, and week 12, and stored at -80C until assay.","label":"method"}
+{"text":"HbA1c fell by 0.8% in the telemonitoring group versus 0.2% under usual care.","label":"result"}
+{"text":"Because the trial was unblinded for outcome assessors, detection bias is possible.","label":"limitation"}
+{"text":"We posited that gut microbiome diversity at baseline predicts response to the dietary intervention.","label":"hypothesis"}
+{"text":"We assessed the primary endpoint on the intention-to-treat population, with multiple imputation.","label":"method"}
+{"text":"Biomarker levels correlated strongly with disease severity (r = 0.71).","label":"result"}
+{"text":"Our cohort came from a single tertiary center, a thin basis for community settings.","label":"limitation"}
+{"text":"Our working assumption was that night-shift dosing aligns drug exposure with circadian blood-pressure peaks.","label":"hypothesis"}
+{"text":"A double-blind design was maintained by encapsulating both active drug and placebo identically.","label":"method"}
+{"text":"The vaccine elicited neutralizing antibodies in 94% of recipients by day 28.","label":"result"}
+{"text":"The observational design precludes causal interpretation of the association.","label":"limitation"}
+{"text":"We expected adherence to mediate the relationship between app reminders and glycemic control.","label":"hypothesis"}
+{"text":"Dosage was titrated weekly to a maximum of 40 mg based on tolerability.","label":"method"}
+{"text":"Postoperative complications occurred in 11% of patients, consistent with published rates.","label":"result"}
+{"text":"We lacked power to detect rare adverse events.","label":"limitation"}
+{"text":"The trial was designed around the premise that early mobilization shortens ICU stays.","label":"hypothesis"}
+{"text":"We extracted comorbidities from electronic records via validated ICD-10 algorithms.","label":"method"}
+{"text":"Adherence was higher with once-daily dosing, suggesting a simpler regimen may help.","label":"result"}
+{"text":"Adherence was self-reported and likely overestimated.","label":"limitation"}
+{"text":"We speculated that the variant acts through haploinsufficiency rather than a dominant-negative mechanism.","label":"hypothesis"}
+{"text":"Trained nurses administered the cognitive battery in a quiet room at consistent times of day.","label":"method"}
+{"text":"Six patients discontinued treatment because of grade 3 adverse events.","label":"result"}
+{"text":"The composite endpoint weights components that differ in clinical importance.","label":"limitation"}
+{"text":"Our bet: pairing the two low-dose agents gives an additive antihypertensive effect.","label":"hypothesis"}
+{"text":"The composite outcome combined hospitalization and all-cause mortality at 180 days.","label":"method"}
+{"text":"The association persisted after adjustment for age, sex, and comorbidity burden.","label":"result"}
+{"text":"Generalizability beyond the studied dose range is uncertain.","label":"limitation"}
+{"text":"Surgical residents trained on simulators carry their skills into the first live procedure, we propose.","label":"hypothesis"}
+{"text":"We censored participants at loss to follow-up or study end, whichever came first.","label":"method"}
+{"text":"Quality-of-life scores improved modestly but reached significance only at week 24.","label":"result"}
+{"text":"While the intervention improved adherence, it did not reduce exacerbations.","label":"limitation"}
+{"text":"Prior evidence led us to expect a U-shaped dose response rather than a monotonic one.","label":"hypothesis"}
+{"text":"Ultrasound measurements were performed by two sonographers blinded to group assignment.","label":"method"}
+{"text":"Sensitivity analyses confirmed the direction of the effect across all subgroups.","label":"result"}
+{"text":"The control arm got enhanced usual care, a contamination that diluted the effect.","label":"limitation"}
+{"text":"Patient-reported pain scores, we suspect, diverge from clinician ratings in chronic pain cohorts.","label":"hypothesis"}
+{"text":"Adverse events were coded with MedDRA version 26 and reviewed by an independent committee.","label":"method"}
+{"text":"Species richness declined by 18% in fragments smaller than five hectares.","label":"result"}
+{"text":"Confounding by indication cannot be excluded in the registry analysis.","label":"limitation"}
+{"text":"We hypothesized that edge habitats support higher pollinator diversity than forest interiors.","label":"hypothesis"}
+{"text":"We surveyed 48 plots along a 40 km elevation gradient during the 2023 and 2024 growing seasons.","label":"method"}
+{"text":"Warmed plots flowered nine days earlier on average than controls.","label":"result"}
+{"text":"Our plots capture only one ecoregion, so extrapolation to boreal systems is premature.","label":"limitation"}
+{"text":"Asynchronous hatching, if warming advances emergence, raises chick mortality.","label":"hypothesis"}
+{"text":"Camera traps were deployed for 90 consecutive nights and checked fortnightly.","label":"method"}
+{"text":"We detected the invasive mussel at 7 of 22 sampling sites.","label":"result"}
+{"text":"Two years of data cannot separate trend from interannual variability.","label":"limitation"}
+{"text":"Predator reintroduction is predicted to cascade down and reshape riparian vegetation.","label":"hypothesis"}
+{"text":"eDNA was extracted from 250 mL water samples filtered onsite through 0.45 um membranes.","label":"method"}
+{"text":"Predator exclusion doubled seedling survival in the first year.","label":"result"}
+{"text":"Camera placement near trails skewed detections toward bold individuals.","label":"limitation"}
+{"text":"We expected nitrogen deposition to shift competitive balance toward nitrophilous grasses.","label":"hypothesis"}
+{"text":"We fitted GLMMs with site as a random intercept to account for repeated sampling.","label":"method"}
+{"text":"Soil carbon stocks were 23% lower under conventional tillage.","label":"result"}
+{"text":"We did not measure soil moisture directly, a potentially important covariate.","label":"limitation"}
+{"text":"Corridor-linked fragments hold more genetic diversity than isolated ones, we suspect.","label":"hypothesis"}
+{"text":"Vegetation cover was estimated in 1 m2 quadrats against a modified Braun-Blanquet scale.","label":"method"}
+{"text":"Bird abundance tracked flower availability, peaking two weeks after bloom onset.","label":"result"}
+{"text":"The mesocosm design simplifies food-web structure relative to natural ponds.","label":"limitation"}
+{"text":"Drought legacy effects persist for at least two growing seasons, we conjecture.","label":"hypothesis"}
+{"text":"Individuals were marked with passive integrated transponders and recaptured monthly.","label":"method"}
+{"text":"Restored wetlands accumulated nitrogen at rates approaching reference sites.","label":"result"}
+{"text":"Species-level identification was impossible for a fifth of the barcode records.","label":"limitation"}
+{"text":"We suspect invasive shrubs alter understory fire frequency in this biome.","label":"hypothesis"}
+{"text":"We simulated drought by excluding 60% of ambient precipitation with rainout shelters.","label":"method"}
+{"text":"Drought reduced arthropod biomass by nearly half across all trophic levels.","label":"result"}
+{"text":"Detection probability varied with discharge and was modeled only approximately.","label":"limitation"}
+{"text":"We anticipated stronger trophic cascades in warmed mesocosms than in ambient ones.","label":"hypothesis"}
+{"text":"Species identities were confirmed against the regional barcode library before analysis.","label":"method"}
+{"text":"eDNA detections matched electrofishing surveys for 85% of target species.","label":"result"}
+{"text":"The grazing treatment ran at one intensity, a narrow slice of field conditions.","label":"limitation"}
+{"text":"Urban birds with relatively larger brains exploit novel feeders faster, in our working hypothesis.","label":"hypothesis"}
+{"text":"Drone imagery was classified using a random forest trained on 3,000 labeled pixels.","label":"method"}
+{"text":"Corridor presence increased movement rates between fragments threefold.","label":"result"}
+{"text":"Our findings are correlational; experimental confirmation is needed.","label":"limitation"}
+{"text":"We posited that mycorrhizal networks buffer seedlings against water stress.","label":"hypothesis"}
+{"text":"We measured soil respiration with a portable infrared gas analyzer at fixed collars.","label":"method"}
+{"text":"The observed decline suggests that recruitment, not adult survival, is the bottleneck.","label":"result"}
+{"text":"The transplant experiment ran one season, so establishment effects are unresolved.","label":"limitation"}
+{"text":"Theory predicts an intermediate biomass peak under moderate grazing pressure.","label":"hypothesis"}
+{"text":"Phenology scores were assigned weekly by observers calibrated on a photo guide.","label":"method"}
+{"text":"Mycorrhizal colonization was highest in the oldest successional plots.","label":"result"}
+{"text":"Sample sizes for rare species were too small for robust inference.","label":"limitation"}
+{"text":"We supposed that eDNA detection rates would covary with discharge in the stream network.","label":"hypothesis"}
+{"text":"We pooled transect counts to the 1-km segment level to reduce zero inflation.","label":"method"}
+{"text":"We linked administrative tax records to school enrollment files for the full 2010-2020 cohort.","label":"method"}
+{"text":"We hypothesize that minimum-wage indexing reduces earnings volatility for low-income households.","label":"hypothesis"}
+{"text":"The wage elasticity estimate came out at -0.21, precise enough to rule out large effects.","label":"result"}
+{"text":"While diversity rose overall, gains were driven by common generalist species.","label":"limitation"}
+{"text":"Identification relies on a regression discontinuity around the eligibility threshold.","label":"method"}
+{"text":"Lump-sum transfers, we suspect, lift consumption more than equivalent credit lines when liquidity constraints bind.","label":"hypothesis"}
+{"text":"Employment in treated counties grew 2.4% faster in the two years after the reform.","label":"result"}
+{"text":"The estimates identify a local average effect near the cutoff, not the population effect.","label":"limitation"}
+{"text":"We instrumented export exposure with shipping costs measured at the port level.","label":"method"}
+{"text":"We expected the tariff shock to pass through incompletely to consumer prices.","label":"hypothesis"}
+{"text":"We estimate the policy raised enrollment by 5.1 percentage points.","label":"result"}
+{"text":"We observe outcomes for two years only and cannot speak to longer horizons.","label":"limitation"}
+{"text":"The event-study specification includes firm and year fixed effects with clustered errors.","label":"method"}
+{"text":"Our prior was that information frictions, not credit supply, drive the adoption gap.","label":"hypothesis"}
+{"text":"Prices in concentrated markets rose 8% following the merger wave.","label":"result"}
+{"text":"The instrument is weak in the northern subsample, so those results are exploratory.","label":"limitation"}
+{"text":"We constructed a shift-share instrument using leave-one-out industry growth rates.","label":"method"}
+{"text":"Remote work widening the urban-rural wage gap is our starting conjecture.","label":"hypothesis"}
+{"text":"The shock reduced import volumes by roughly a third at the intensive margin.","label":"result"}
+{"text":"Anticipation effects before enactment could attenuate the measured impact.","label":"limitation"}
+{"text":"Surveys were fielded online to 4,800 respondents with quota sampling on age and region.","label":"method"}
+{"text":"We reasoned that transparent salary bands compress the within-firm gender pay gap.","label":"hypothesis"}
+{"text":"Effects were concentrated among younger workers and small firms.","label":"result"}
+{"text":"Our data lack prices, so we cannot separate quantity and quality responses.","label":"limitation"}
+{"text":"We winsorized the top and bottom 1% of the wage distribution before estimation.","label":"method"}
+{"text":"Carbon pricing, we expect, shifts innovation toward clean inputs in manufacturing.","label":"hypothesis"}
+{"text":"The estimate implies a multiplier of about 1.3, though standard errors are substantial.","label":"result"}
+{"text":"The sample leaves out informal-sector workers, so the findings cover formal jobs alone.","label":"limitation"}
+{"text":"Difference-in-differences estimates were computed using the doubly robust estimator.","label":"method"}
+{"text":"We conjectured that merger announcements reveal private information about rivals' costs.","label":"hypothesis"}
+{"text":"Adoption of the subsidy was slower than projected, reaching 31% of eligible firms.","label":"result"}
+{"text":"Estimates are sensitive to the bandwidth choice in ways we cannot fully resolve.","label":"limitation"}
+{"text":"We randomized the order of price disclosures across sessions to test for ordering effects.","label":"method"}
+{"text":"Standard theory predicts insurance take-up should rise after a salient local disaster.","label":"hypothesis"}
+{"text":"Wage gains persisted for three quarters before fading to zero.","label":"result"}
+{"text":"This design does not separate income effects from substitution effects.","label":"limitation"}
+{"text":"Data were drawn from the monthly labor force survey, waves 2015-2023.","label":"method"}
+{"text":"We expected entry deregulation to lower markups in the retail pharmacy sector.","label":"hypothesis"}
+{"text":"The natural experiment produced estimates half the size of the observational ones.","label":"result"}
+{"text":"Spillovers to untreated neighboring districts would bias the estimates downward.","label":"limitation"}
+{"text":"We calibrated the structural model to match five moments from the observed data.","label":"method"}
+{"text":"Our hypothesis was that cash transfers increase school enrollment only where supply-side capacity exists.","label":"hypothesis"}
+{"text":"Housing starts responded within two quarters of the rate change.","label":"result"}
+{"text":"The natural experiment occurred during an unusual macro period, limiting external validity.","label":"limitation"}
+{"text":"Attrition was assessed by regressing observables on an indicator for wave-3 response.","label":"method"}
+{"text":"Platform fees land disproportionately on occasional sellers, a plausible but untested hunch.","label":"hypothesis"}
+{"text":"Demand for the bundled plan exceeded the single-product forecast by 22%.","label":"result"}
+{"text":"Online collection leaves older households thinly represented in the survey responses.","label":"limitation"}
+{"text":"The detector was operated at 15 mK inside a dilution refrigerator shielded by mu-metal.","label":"method"}
+{"text":"We hypothesized that the anomaly arises from unmodeled background in the muon channel.","label":"hypothesis"}
+{"text":"The measured lifetime deviates from the standard-model prediction by 2.1 sigma.","label":"result"}
+{"text":"While take-up rose, the mechanism — information versus liquidity — remains ambiguous.","label":"limitation"}
+{"text":"We sputtered 200 nm of NbTiN onto high-resistivity silicon under ultra-high vacuum.","label":"method"}
+{"text":"If the condensate is topological, edge states should persist under weak disorder.","label":"hypothesis"}
+{"text":"We observed a clear resonance at 94.5 GHz with a quality factor of 12,000.","label":"result"}
+{"text":"Systematic uncertainties from the background model dominate the statistical error.","label":"limitation"}
+{"text":"Cross-sections were extracted by unfolding the measured yields with the response matrix.","label":"method"}
+{"text":"Our conjecture: the coupling constant runs faster than the standard prediction.","label":"hypothesis"}
+{"text":"Critical current density fell by 30% after ten thermal cycles.","label":"result"}
+{"text":"The calibration was performed at one temperature and may drift under operating conditions.","label":"limitation"}
+{"text":"We scanned the magnetic field from -2 T to 2 T in 10 mT steps while recording resistance.","label":"method"}
+{"text":"We expected the perovskite films to degrade primarily through halide migration.","label":"hypothesis"}
+{"text":"The fits yield a band gap of 1.62 eV, in good agreement with theory.","label":"result"}
+{"text":"Our samples span a narrow doping range, so the phase boundary remains uncertain.","label":"limitation"}
+{"text":"The spectra were fitted with a Voigt profile after subtracting a linear background.","label":"method"}
+{"text":"Our model predicts a second resonance peak near 1.4 THz under perpendicular field.","label":"hypothesis"}
+{"text":"Signal-to-noise improved sixfold after the shielding upgrade.","label":"result"}
+{"text":"The measurement cannot distinguish bulk from surface contributions.","label":"limitation"}
+{"text":"We recorded an anomalous Hall signal persisting to 50 K.","label":"result"}
+{"text":"We reasoned that dark counts alone could not account for the excess at low thresholds.","label":"hypothesis"}
+{"text":"Monte Carlo events were generated with next-to-leading-order matrix elements matched to parton showers.","label":"method"}
+{"text":"The gains were largest for low-resource languages, suggesting transfer from related languages.","label":"result"}
+{"text":"Beam-time constraints limited us to three field configurations.","label":"limitation"}
+{"text":"The scaling hypothesis implies collapse of all curves onto a single universal function.","label":"hypothesis"}
+{"text":"We characterized the resonator's quality factor using circle fits in the complex plane.","label":"method"}
+{"text":"Coherence times reached 120 us, a fourfold improvement over the control devices.","label":"result"}
+{"text":"The simulation neglects electron-phonon coupling, likely underestimating scattering.","label":"limitation"}
+{"text":"We anticipated that spin-orbit torque would dominate over Oersted-field switching in thin films.","label":"hypothesis"}
+{"text":"Beam polarization was measured hourly with a Compton polarimeter upstream of the target.","label":"method"}
+{"text":"The data hint at a second, broader peak near 2 eV, though statistics are limited.","label":"result"}
+{"text":"We did not reach the low-energy threshold where the effect is predicted to peak.","label":"limitation"}
+{"text":"If decoherence is Markovian, fidelity should decay exponentially with gate depth.","label":"hypothesis"}
+{"text":"The device was annealed at 300C for two hours to activate the dopants.","label":"method"}
+{"text":"Magnetization curves collapsed onto a single branch after rescaling.","label":"result"}
+{"text":"The observed signal is consistent with but not exclusive to the proposed mechanism.","label":"limitation"}
+{"text":"We posited that grain boundaries act as the dominant pinning centers below 30 K.","label":"hypothesis"}
+{"text":"We performed finite-element simulations of the heat flow using measured thermal conductivities.","label":"method"}
+{"text":"We found no excess above background in the 2-4 keV window.","label":"result"}
+{"text":"Fits are degenerate between two parameter sets and do not favor either.","label":"limitation"}
+{"text":"Theory suggests the phase transition should turn first-order at high doping.","label":"hypothesis"}
+{"text":"Uncertainty in the luminosity was propagated as a correlated nuisance parameter.","label":"method"}
+{"text":"Thermal conductivity dropped sharply below the structural transition.","label":"result"}
+{"text":"The apparatus sensitivity falls off above 100 K, truncating the dataset.","label":"limitation"}
+{"text":"We presumed the signal originates in the outer ring given the anisotropy of the coupler.","label":"hypothesis"}
+{"text":"We cooled the sample overnight in zero field, then trained the magnetic state with five loops.","label":"method"}
+{"text":"Remanent magnetization dropped to zero within experimental resolution above 40 K.","label":"result"}
+{"text":"While the resonance is sharp, its origin — intrinsic or instrumental — is unresolved.","label":"limitation"}
+{"text":"We hypothesized that deliberative polling shifts preferences more than standard surveys.","label":"hypothesis"}
+{"text":"We recruited 1,100 participants through a national online panel, stratified by education.","label":"method"}
+{"text":"Treated respondents were 9 points more likely to support the policy afterward.","label":"result"}
+{"text":"The effective-mass extraction assumes a parabolic band that may not hold here.","label":"limitation"}
+{"text":"If social norms drive reporting, then anonymity should increase disclosed tax evasion.","label":"hypothesis"}
+{"text":"The vignette experiment randomized respondents to one of four framings.","label":"method"}
+{"text":"Turnout increased by 2.8 points in precincts receiving the mailer.","label":"result"}
+{"text":"The panel overrepresents urban, educated respondents relative to the population.","label":"limitation"}
+{"text":"We expected classroom air-quality improvements to raise test scores modestly.","label":"hypothesis"}
+{"text":"Interviews were conducted in participants' homes and lasted 45-70 minutes.","label":"method"}
+{"text":"The field experiment produced no detectable effect on application rates.","label":"result"}
+{"text":"We rely on self-reported turnout, which is subject to social desirability bias.","label":"limitation"}
+{"text":"Our expectation was that framing aid as local rather than national would raise support.","label":"hypothesis"}
+{"text":"We coded the open-ended responses using a scheme developed on a 10% subsample.","label":"method"}
+{"text":"Trust scores rose in both arms, complicating attribution to the intervention.","label":"result"}
+{"text":"The vignettes simplify the policy and may inflate effect sizes relative to real campaigns.","label":"limitation"}
+{"text":"We forecast that algorithmic management erodes perceived job autonomy.","label":"hypothesis"}
+{"text":"Ethnographic fieldwork was carried out over 14 months in two neighborhood associations.","label":"method"}
+{"text":"We found a 15% reduction in disciplinary incidents after the schedule change.","label":"result"}
+{"text":"Fieldwork covered a single city and results may not extend elsewhere.","label":"limitation"}
+{"text":"We reasoned that descriptive representation increases bureaucratic responsiveness.","label":"hypothesis"}
+{"text":"We linked the survey data to precinct-level turnout records via county identifiers.","label":"method"}
+{"text":"Participants in the incentive condition completed 40% more tasks.","label":"result"}
+{"text":"Causal claims are limited by the possibility of unmeasured confounding.","label":"limitation"}
+{"text":"The argument implies voter turnout should fall where polling places were consolidated.","label":"hypothesis"}
+{"text":"The lab study used a 2x2 between-subjects design with incentive-compatible choices.","label":"method"}
+{"text":"The audit study revealed differential response rates by name ethnicity.","label":"result"}
+{"text":"The interviewees were recruited via referral chains, which skews the sample.","label":"limitation"}
+{"text":"We anticipated that gamified feedback would sustain engagement only temporarily.","label":"hypothesis"}
+{"text":"We transcribed all hearings and segmented them into speaker turns automatically.","label":"method"}
+{"text":"Effects faded within two months, suggesting the nudge is short-lived.","label":"result"}
+{"text":"Effects observed in the lab may shrink in noisier field settings.","label":"limitation"}
+{"text":"Prior work led us to expect larger treatment effects among first-generation students.","label":"hypothesis"}
+{"text":"Reliability was assessed with Krippendorff's alpha on double-coded transcripts.","label":"method"}
+{"text":"Self-reported wellbeing tracked closely with observed time-use diaries.","label":"result"}
+{"text":"We lack baseline measures before the intervention was announced.","label":"limitation"}
+{"text":"We posited that housing vouchers affect children's outcomes mainly through neighborhood school quality.","label":"hypothesis"}
+{"text":"We pre-registered the analysis plan before collecting any outcome data.","label":"method"}
+{"text":"Support for redistribution was higher among respondents primed with mobility narratives.","label":"result"}
+{"text":"While respondents endorsed the program, actual take-up was not measured.","label":"limitation"}
+{"text":"The coding scheme, though reliable, may miss subtle rhetorical differences.","label":"limitation"}

@@ -1,0 +1,280 @@
+{"text":"How long does it take for a cash withdrawal to show?","label":"pending_cash_withdrawal"}
+{"text":"i withdrew cash and dont see it reflected on the balance","label":"pending_cash_withdrawal"}
+{"text":"My top up hasn't gone through","label":"pending_top_up"}
+{"text":"Why didn't I get the amount I requested at the ATM?","label":"wrong_amount_of_cash_received"}
+{"text":"I want to take back my transaction","label":"cancel_transfer"}
+{"text":"I was able to find my card. How to I go about putting it into my app?","label":"card_linking"}
+{"text":"What is the fee on my statement for?","label":"extra_charge_on_statement"}
+{"text":"Can you please tell me where my card is? I ordered it 2 weeks ago!","label":"card_arrival"}
+{"text":"I'm still waiting for my card that was issued a week ago. What should I do?","label":"card_arrival"}
+{"text":"why does my statement contain an extra fee?","label":"extra_charge_on_statement"}
+{"text":"Why is my withdrawl to cash still pending?","label":"pending_cash_withdrawal"}
+{"text":"What is the extra fee on my statement?","label":"extra_charge_on_statement"}
+{"text":"I already have a card and want to link it","label":"card_linking"}
+{"text":"I was expecting my new card by now.","label":"card_arrival"}
+{"text":"How long does it take for a new card to ship?","label":"card_arrival"}
+{"text":"How can I see the progress of delivery of the card that was sent?","label":"card_arrival"}
+{"text":"I asked for a certain amount of money from the ATM, but it gave me a different amount. Less than what I asked for.","label":"wrong_amount_of_cash_received"}
+{"text":"Top-up is loaded into the card and no update.","label":"pending_top_up"}
+{"text":"I want to reactivate my card, I found it after thinking it was lost.","label":"card_linking"}
+{"text":"My top-up is taking a while to process!","label":"pending_top_up"}
+{"text":"When will my top-up go through?","label":"pending_top_up"}
+{"text":"I do not understand why there is a pending 1£ charge on my statement, I do not recall making this transaction. Can you please tell me what this is about?","label":"extra_charge_on_statement"}
+{"text":"Have you sent out my card yet?","label":"card_arrival"}
+{"text":"I was charged extra or a hidden fee when I purchased something from you. What's the deal? I didn't authorize that charge.","label":"extra_charge_on_statement"}
+{"text":"I do not know why I was charged for the $1 transaction.","label":"extra_charge_on_statement"}
+{"text":"When I was traveling abroad, the exchange rate was applied wrong.","label":"card_payment_wrong_exchange_rate"}
+{"text":"How do I get my cash withdrawal to show?","label":"pending_cash_withdrawal"}
+{"text":"I need you to stop the transfer I just started as soon as possible, I just realized it's not correct!","label":"cancel_transfer"}
+{"text":"An item I bought had the wrong exchange rate applied.","label":"card_payment_wrong_exchange_rate"}
+{"text":"I submitted a transaction but it was for the incorrect account.","label":"cancel_transfer"}
+{"text":"Hae there, I have a transaction that is in progress despite the fact that the ATM was not working, what do I do to avoid being charged?","label":"pending_cash_withdrawal"}
+{"text":"My new card hasn't came in.","label":"card_arrival"}
+{"text":"I recently purchased something, and the exchange rate was wrong.","label":"card_payment_wrong_exchange_rate"}
+{"text":"I was issued a card about a week ago. why hasn't it come in yet?","label":"card_arrival"}
+{"text":"I just realized I made the wrong transaction yesterday. Would you please make it correct?I need it by tomorrow.","label":"cancel_transfer"}
+{"text":"What does the €1 fee mean?","label":"extra_charge_on_statement"}
+{"text":"I feel as though I have been over charged for the exchange rate on my payment on last Saturday.","label":"card_payment_wrong_exchange_rate"}
+{"text":"When did you send me my new card?","label":"card_arrival"}
+{"text":"There is an extra 1£ charge on my app. Why did you charge me extra?","label":"extra_charge_on_statement"}
+{"text":"Why hasnt my top up gone through yet?? I thought it was suppose to be instant? Am I wrong? Why is it still pending?","label":"pending_top_up"}
+{"text":"What do I need to do to cancel a transaction?","label":"cancel_transfer"}
+{"text":"How do I go about cancelling a transaction?","label":"cancel_transfer"}
+{"text":"I purchased something abroad but the exchange rate is incorrect.","label":"card_payment_wrong_exchange_rate"}
+{"text":"I need to reverse a transaction","label":"cancel_transfer"}
+{"text":"In my account I noticed my ATM withdrawal is still pending","label":"pending_cash_withdrawal"}
+{"text":"Can you show me where to link the new card?","label":"card_linking"}
+{"text":"I got some cash but it wasn't the right amount.","label":"wrong_amount_of_cash_received"}
+{"text":"How do I know when my new card is going to arrive?","label":"card_arrival"}
+{"text":"ATM is broken. It did not give me the full amount (30 pounds.) I'm standing here with only 10 pounds and it's telling me it gave me 30 pounds. I need assistance now!","label":"wrong_amount_of_cash_received"}
+{"text":"I have been charged a pound for something that appears on my statement","label":"extra_charge_on_statement"}
+{"text":"I made a rent payment from the wrong account yesterday. It absolutely has to go through tomorrow, so can you please reroute the payment to the right account?","label":"cancel_transfer"}
+{"text":"I needed to make a payment on my account, but I typed in the incorrect number. The app won't allow me to cancel this transaction. I need it cancelled ASAP!!","label":"cancel_transfer"}
+{"text":"The cash I wanted wasn't there.","label":"wrong_amount_of_cash_received"}
+{"text":"I'm going on a trip soon and I needed to convert my Russian ruble to UK pounds, but when I did, your company charged me above the exchange rate. Did you mess up my transaction?","label":"card_payment_wrong_exchange_rate"}
+{"text":"So much time has gone by, the pending status shouldn't still be there shouldn't it?","label":"pending_cash_withdrawal"}
+{"text":"How can I track my card's delivery?","label":"card_arrival"}
+{"text":"How long does a top-up take to go through?","label":"pending_top_up"}
+{"text":"Is there any way to cancel my transfer","label":"cancel_transfer"}
+{"text":"What is the expected delivery date of my card?","label":"card_arrival"}
+{"text":"I tried to get cash at some ATM in the city centre earlier but the machine declined my card. I've seen it still shows up as pending in my account. Please cancel it immediately as I definitely have not received that money!","label":"pending_cash_withdrawal"}
+{"text":"I would like to re-activate my card, it was previously reported lost but I found it this morning.","label":"card_linking"}
+{"text":"I have a top-up that's still pending and wanted to know about it.","label":"pending_top_up"}
+{"text":"Can I put my old card back in the app?","label":"card_linking"}
+{"text":"2 weeks ago I ordered my new card. It isn't here. What should I do?","label":"card_arrival"}
+{"text":"Is the cash withdrawal going to show?","label":"pending_cash_withdrawal"}
+{"text":"How come there is a $1 extra charge on my statement?","label":"extra_charge_on_statement"}
+{"text":"Why does a cash withdrawal show as pending?","label":"pending_cash_withdrawal"}
+{"text":"The ATM did not give me as much cash as I requested.","label":"wrong_amount_of_cash_received"}
+{"text":"It appears my top-up is still pending.","label":"pending_top_up"}
+{"text":"Is there a reason my top-up has not gone through?","label":"pending_top_up"}
+{"text":"I've been charged an extra £1 and I don't know what it's for","label":"extra_charge_on_statement"}
+{"text":"What do I do if I still have not received my new card?","label":"card_arrival"}
+{"text":"I changed the currency, but why is it costing more?","label":"card_payment_wrong_exchange_rate"}
+{"text":"Can you please explain to me why there is an extra €1 fee in my statement?","label":"extra_charge_on_statement"}
+{"text":"Why isn't my purchase exchange rate correct?","label":"card_payment_wrong_exchange_rate"}
+{"text":"The cash I deposited using the ATM is still pending","label":"pending_cash_withdrawal"}
+{"text":"What should I do if I see a withdrawal is pending?","label":"pending_cash_withdrawal"}
+{"text":"I want to reactivate my card, I thought I had lost it but found it again in my jacket.","label":"card_linking"}
+{"text":"The exchange rate that was applied for an international purchase was wrong.","label":"card_payment_wrong_exchange_rate"}
+{"text":"I thought I lost my card but I found it today, so I would like to reactivate it.","label":"card_linking"}
+{"text":"I need to cancel my recent transfer quickly since I made a mistake. Please help before it goes through.","label":"cancel_transfer"}
+{"text":"I withdrew some cash, when is it going to show?","label":"pending_cash_withdrawal"}
+{"text":"can I link a card of yours I already have?","label":"card_linking"}
+{"text":"I deactivated my card but would like to reactivate it.","label":"card_linking"}
+{"text":"I accidentally made a payment to a wrong account. What should I do?","label":"cancel_transfer"}
+{"text":"What happens if the ATM doesn't give the right amount of money?","label":"wrong_amount_of_cash_received"}
+{"text":"Is there a way I can check on the card on route to me?","label":"card_arrival"}
+{"text":"The item i bought exchanged rate was incorrect.","label":"card_payment_wrong_exchange_rate"}
+{"text":"I bought an item at the wrong exchange rate.","label":"card_payment_wrong_exchange_rate"}
+{"text":"I need to find out where the card is that I ordered.","label":"card_arrival"}
+{"text":"I checked my account today and saw that I was charged an extra pound that I did not spend.","label":"extra_charge_on_statement"}
+{"text":"How do I add my new card?","label":"card_linking"}
+{"text":"How do I add my new card to the app?","label":"card_linking"}
+{"text":"I sent a payment to the wrong account number - can that transaction be reversed? I am worried about accidentally giving my money away.","label":"cancel_transfer"}
+{"text":"I inadvertently completed a transaction on a wrong account.","label":"cancel_transfer"}
+{"text":"Can you please tell me why my cash withdrawal is still pending?","label":"pending_cash_withdrawal"}
+{"text":"Please cancel my last transaction.","label":"cancel_transfer"}
+{"text":"How do I link the new card that I just got from you guys?","label":"card_linking"}
+{"text":"If I make a mistake can I cancel the transaction?","label":"cancel_transfer"}
+{"text":"I have been charged an extra pound!","label":"extra_charge_on_statement"}
+{"text":"I tried to get some with-drawls but the machine didn't work. The transaction still seems in progress.Seems like something is wrong,I don't want to be charged for Transaction i did not make.","label":"pending_cash_withdrawal"}
+{"text":"I'm not certain my top-up went through yet.","label":"pending_top_up"}
+{"text":"I made the incorrect payment for my rent yesterday and this needs to be fixed by no later than tomorrow. How can you help?","label":"cancel_transfer"}
+{"text":"Last Saturday, I was charged extra for the exchange rate on my payment. Is something wrong?","label":"card_payment_wrong_exchange_rate"}
+{"text":"I tempted to get some money out of the machine earlier and it did not work.Looking now, the transaction actually shows to still be in progress. I would certainly appreciate someone look into this and let me know what's going on. I definitely do not want to be charged for money I never received.","label":"pending_cash_withdrawal"}
+{"text":"What is the reason my cash withdrawal is still pending?","label":"pending_cash_withdrawal"}
+{"text":"I didn't receive the amount of cash I requested for the ATM.","label":"wrong_amount_of_cash_received"}
+{"text":"My payment has an incorrect exchange rate.","label":"card_payment_wrong_exchange_rate"}
+{"text":"Do you have info about the card on delivery?","label":"card_arrival"}
+{"text":"My account says I have money but I withdrew it in cash.","label":"pending_cash_withdrawal"}
+{"text":"Where are my funds? I topped off my car but it didn't seem to complete.","label":"pending_top_up"}
+{"text":"I need some help linking my new card.","label":"card_linking"}
+{"text":"Why does my statement show an extra fee?","label":"extra_charge_on_statement"}
+{"text":"Why was I charged an additional $1?","label":"extra_charge_on_statement"}
+{"text":"I bought something abroad and the exchange rate applied is wrong","label":"card_payment_wrong_exchange_rate"}
+{"text":"The exchange rate on my payment doesn't look right","label":"card_payment_wrong_exchange_rate"}
+{"text":"Can you tell me why my pop-up is still pending?","label":"pending_top_up"}
+{"text":"is it possible to cancel transactions?","label":"cancel_transfer"}
+{"text":"Says that my top-up is incomplete?","label":"pending_top_up"}
+{"text":"I received my card, how do I get it to work in the app?","label":"card_linking"}
+{"text":"Was I charged more than I should of been for a currency exchange?","label":"card_payment_wrong_exchange_rate"}
+{"text":"What do I need to do to link my new card for my account?","label":"card_linking"}
+{"text":"my cash balance less than what I thought","label":"wrong_amount_of_cash_received"}
+{"text":"I'm still waiting for my card.","label":"card_arrival"}
+{"text":"Can you please explain why the exchange rate for the item I bought is wrong?","label":"card_payment_wrong_exchange_rate"}
+{"text":"My top up did not complete.","label":"pending_top_up"}
+{"text":"I need some help figuring out what this strange payment is on my account. It's stays pending and won't go away.","label":"extra_charge_on_statement"}
+{"text":"Why is the exchange rate on my card payment different than I expected?","label":"card_payment_wrong_exchange_rate"}
+{"text":"I've been waiting a while for my card, is there a way to know when it will arrive?","label":"card_arrival"}
+{"text":"What can I do to track the card you sent me?","label":"card_arrival"}
+{"text":"I thought I lost my card so I cancelled it, but recently I found it in my jacket and I would like to re-establish the card.","label":"card_linking"}
+{"text":"After purchasing an item I noticed the exchange rate was incorrect.","label":"card_payment_wrong_exchange_rate"}
+{"text":"I received my new card. Where is it in the app?","label":"card_linking"}
+{"text":"top up is still pending","label":"pending_top_up"}
+{"text":"Help, the ATM didn't give me all the money I requested","label":"wrong_amount_of_cash_received"}
+{"text":"When will my top up be approved?","label":"pending_top_up"}
+{"text":"My top up is still pending","label":"pending_top_up"}
+{"text":"I was supposed to receive my new card by now, but it hasn't came in.","label":"card_arrival"}
+{"text":"How do I link a new payment card?","label":"card_linking"}
+{"text":"You sent me a card and now I want to link it.","label":"card_linking"}
+{"text":"What do I need to do to request cash back? The ATM actually just gave me the wrong amount. The app I actually chose the right amount.","label":"wrong_amount_of_cash_received"}
+{"text":"Help me cancel a transaction.","label":"cancel_transfer"}
+{"text":"I stupidly initiated a rent payment from the wrong account yesterday. It can't be paid from that account, but it really needs to get paid on time. Am I able to move the payment to the right account?","label":"cancel_transfer"}
+{"text":"I have the cash already, my account still shows up as pending. How can my account be still pending?","label":"pending_cash_withdrawal"}
+{"text":"Is it possible to link a new card?","label":"card_linking"}
+{"text":"The atm didn'y give me all the cash","label":"wrong_amount_of_cash_received"}
+{"text":"There is an extra small charge on my card! What do I do?","label":"extra_charge_on_statement"}
+{"text":"I got the incorrect amount of money given to me from my account","label":"wrong_amount_of_cash_received"}
+{"text":"When will I get my new card?","label":"card_arrival"}
+{"text":"I did a transaction this morning and now I want to cancel it.","label":"cancel_transfer"}
+{"text":"What do I need to do to get cash back? The ATM gave me the wrong amount that I requested but the app is showing the amount to be correct.","label":"wrong_amount_of_cash_received"}
+{"text":"What do I do if my top-up has not gone through?","label":"pending_top_up"}
+{"text":"I did not get enough cash","label":"wrong_amount_of_cash_received"}
+{"text":"What does it mean if my top-up has not gone through?","label":"pending_top_up"}
+{"text":"Hey, I tried to withdraw some cash earlier and it's saying it's pending? Will I be charged for this?","label":"pending_cash_withdrawal"}
+{"text":"Help, I don't see my money i just added.","label":"pending_top_up"}
+{"text":"How can I link the new card?","label":"card_linking"}
+{"text":"How can I request cash back? The ATM just gave me a different amount than what I've been charged though...","label":"wrong_amount_of_cash_received"}
+{"text":"My card has been found. Is there any way for me to put it back into the app?","label":"card_linking"}
+{"text":"Why is my top-up pending?","label":"pending_top_up"}
+{"text":"I bought an item then noticed the exchange rate was wrong.","label":"card_payment_wrong_exchange_rate"}
+{"text":"I noticed that the exchange rate applied to a recent purchase I made abroad was incorrect.","label":"card_payment_wrong_exchange_rate"}
+{"text":"Hello, I'm having trouble with my card, I don't understand what's happening, I tried using the ATM machine earlier but it wasn't working but seems like the transactions is still in progress, can you cancel it for me?","label":"pending_cash_withdrawal"}
+{"text":"What's go on, where is my new card?","label":"card_arrival"}
+{"text":"A foreign purchase I made has the incorrect rate applied to it.","label":"card_payment_wrong_exchange_rate"}
+{"text":"I'm concerned because my cash withdrawal is pending.","label":"pending_cash_withdrawal"}
+{"text":"An incorrect exchange rate was applied to an item I bought.","label":"card_payment_wrong_exchange_rate"}
+{"text":"How long will my top-up be pending?","label":"pending_top_up"}
+{"text":"What do I have to do to cancel a transfer?","label":"cancel_transfer"}
+{"text":"Why on earth is the exchange rate so bad? Can I get a rate closer to the actual interbank rate?","label":"card_payment_wrong_exchange_rate"}
+{"text":"The currency exchange for my purchase in foreign currency is incorrect.","label":"card_payment_wrong_exchange_rate"}
+{"text":"I made a deposit in the ATM and it has not cleared","label":"pending_cash_withdrawal"}
+{"text":"Can you look into why my most recent top-up is showing as pending? I thought it was supposed to be instantaneous.","label":"pending_top_up"}
+{"text":"Why did I not get the amount I specified at the ATM?","label":"wrong_amount_of_cash_received"}
+{"text":"Has my card been lost in delivery?","label":"card_arrival"}
+{"text":"The amount of exchange was not correct for the item i bought.","label":"card_payment_wrong_exchange_rate"}
+{"text":"I'm expecting to see a cash withdrawal but I'm still waiting.","label":"pending_cash_withdrawal"}
+{"text":"I took out money, and didn't get all of it.","label":"wrong_amount_of_cash_received"}
+{"text":"I tried topping up for the first time today since I am a new customer. It doesn't appear that it's working. It has been pending for at least half an hour. Please take care of this.","label":"pending_top_up"}
+{"text":"Why has my withdrawal not posted?","label":"pending_cash_withdrawal"}
+{"text":"Is there a way to revert a transaction?","label":"cancel_transfer"}
+{"text":"I used the wrong account.","label":"cancel_transfer"}
+{"text":"My card arrived but I need to make it work in the app, how do I do that?","label":"card_linking"}
+{"text":"Is there a way to undo a transaction?","label":"cancel_transfer"}
+{"text":"I wanted $100 but only got $20","label":"wrong_amount_of_cash_received"}
+{"text":"My card hasn't shown up yet.","label":"card_arrival"}
+{"text":"Why has another fee been placed on my statement?","label":"extra_charge_on_statement"}
+{"text":"Why is there a pending hold on one pound on my statement?","label":"extra_charge_on_statement"}
+{"text":"There should be a cash withdrawal that I haven't seen yet.","label":"pending_cash_withdrawal"}
+{"text":"Did a WD earlier at an ATM. The amount showing in the App is more than I got though.","label":"wrong_amount_of_cash_received"}
+{"text":"Yikes! I didn't get the amount of money that I requested. What do I do now?","label":"wrong_amount_of_cash_received"}
+{"text":"I ordered a card and would like to know how to track the delivery progress of it.","label":"card_arrival"}
+{"text":"In the app, how can I make it show the new card that arrived?","label":"card_linking"}
+{"text":"I already made a transfer and want to cancel it, how do I do that?","label":"cancel_transfer"}
+{"text":"There is a pending transaction on my account for when I tried to get money from the ATM earlier and it did not work. Can you fix this?","label":"pending_cash_withdrawal"}
+{"text":"I removed cash from an ATM earlier but it shows up as pending in the app. How can this still be pending, I already received the cash?","label":"pending_cash_withdrawal"}
+{"text":"I tried to withdraw some money from an ATM this morning but wasn't able to get the amount of cash I needed. The amount in the app says what I was trying to withdraw was deducted, but I don't have any money. What do I do about this?","label":"wrong_amount_of_cash_received"}
+{"text":"When will my top up process?","label":"pending_top_up"}
+{"text":"Im trying to top up my card but it's still pending and it's been an hour. Is there any way to make it go through faster? Do I not have enough?","label":"pending_top_up"}
+{"text":"When I look at my statement there is an extra fee, that is for what?","label":"extra_charge_on_statement"}
+{"text":"what was the $1 fee i got","label":"extra_charge_on_statement"}
+{"text":"My top up did not go through yet.","label":"pending_top_up"}
+{"text":"How can I check on the status of my new card?","label":"card_arrival"}
+{"text":"What is this extra pound charge for?","label":"extra_charge_on_statement"}
+{"text":"My card payment had the wrong exchange rate","label":"card_payment_wrong_exchange_rate"}
+{"text":"Please sort your top up! My top up has been pending for an hour already. Can you please make it go through as soon as possible. I really need the money.","label":"pending_top_up"}
+{"text":"Where did this extra €1 fee on my statement come from?","label":"extra_charge_on_statement"}
+{"text":"It seems that something went wrong with my exchange. I changed Russian Ruble into UK pounds but have been charged entirely too much!","label":"card_payment_wrong_exchange_rate"}
+{"text":"When will my top-up be completed?","label":"pending_top_up"}
+{"text":"$1 charge in transaction.","label":"extra_charge_on_statement"}
+{"text":"I paid my rent into the wrong account, could you please pay it into the right account, it needs to be done by tomorrow.","label":"cancel_transfer"}
+{"text":"I want to reactivate my card, I thought I had lost it but found it again this morning.","label":"card_linking"}
+{"text":"I found my card, am I able to put it back into the app?","label":"card_linking"}
+{"text":"Why am I being charged the wrong currency exchange when I purchased something abroad?","label":"card_payment_wrong_exchange_rate"}
+{"text":"If I have a credit card with you how I get set up to link to it?","label":"card_linking"}
+{"text":"Can the card was sen to me be tracked?","label":"card_arrival"}
+{"text":"Could I get tracking on the card?","label":"card_arrival"}
+{"text":"I see a $1 charge in a transaction.","label":"extra_charge_on_statement"}
+{"text":"Why was my account assessed a fee?","label":"extra_charge_on_statement"}
+{"text":"Hi, I made a transfer yesterday that I need to reverse. I need to put the money in a different account.","label":"cancel_transfer"}
+{"text":"How do i cancel a charge?","label":"cancel_transfer"}
+{"text":"My top-up hasn't gone through","label":"pending_top_up"}
+{"text":"Why haven't I received my new card yet?","label":"card_arrival"}
+{"text":"The wrong account was used during a transaction.","label":"cancel_transfer"}
+{"text":"What if I want to add a card I already have to the app?","label":"card_linking"}
+{"text":"Why didn't I receive the right amount of cash at the ATM?","label":"wrong_amount_of_cash_received"}
+{"text":"I asked for more cash than what was received","label":"wrong_amount_of_cash_received"}
+{"text":"There is an extra 1£ charge on my app. Why did it charge me extra?","label":"extra_charge_on_statement"}
+{"text":"It looks like the exchange rates on my card payment are wrong","label":"card_payment_wrong_exchange_rate"}
+{"text":"Hey, I got charged extra for some reason when I purchased an app. Is this a hidden fee or something? I don't think it's very cool.","label":"extra_charge_on_statement"}
+{"text":"Why is the exchange rate on my card wrong?","label":"card_payment_wrong_exchange_rate"}
+{"text":"There is a 1£ charge that appears as pending on my statement. What is that? I haven't purchased anything for a pound there.","label":"extra_charge_on_statement"}
+{"text":"I went to an ATM to get cash, but the app says the withdrawal is still pending. How is that possible when I already have the cash with me?","label":"pending_cash_withdrawal"}
+{"text":"Please help! The app won't let me cancel a money transfer. I accidently sent money to an account that wasn't mine. I need this cancelled immediately.","label":"cancel_transfer"}
+{"text":"There is some odd 1£ charge that appears as pending on my statement. What's that about? Pretty sure I haven't purchased anything for a pound there.","label":"extra_charge_on_statement"}
+{"text":"I found my card again. Can I put it back into the app?","label":"card_linking"}
+{"text":"Is there any way to see my card in the app?","label":"card_linking"}
+{"text":"Help, your app is showing a larger WD than I actually did earlier at an ATM.","label":"wrong_amount_of_cash_received"}
+{"text":"I am being charged the wrong amount on my card.","label":"card_payment_wrong_exchange_rate"}
+{"text":"I requested a higher amount for my cash withdrawal","label":"wrong_amount_of_cash_received"}
+{"text":"My top is still pending.","label":"pending_top_up"}
+{"text":"Its been several days and my cash withdrawal is still pending. Why?","label":"pending_cash_withdrawal"}
+{"text":"Why can't I see my funds after I topped up?","label":"pending_top_up"}
+{"text":"I need to cancel my recent transfer as soon as possible. I made an error there. Please help before it goes through.","label":"cancel_transfer"}
+{"text":"Hi, I draw out some money from the ATM today. The ATM has given me wrong amount and the application is displaying more amount than i withdraw.","label":"wrong_amount_of_cash_received"}
+{"text":"I didn't get the correct amount of money from the ATM machine","label":"wrong_amount_of_cash_received"}
+{"text":"I'd lke my card reactivated, I was thinking it was misplaced but I discovered when I woke up that I had left it in my coat.","label":"card_linking"}
+{"text":"My cash received does not match what has been requested","label":"wrong_amount_of_cash_received"}
+{"text":"How long does it take for my top up to clear?","label":"pending_top_up"}
+{"text":"It is still pending, I am still waiting. Your system just shows my top-up as pending. What is happening?","label":"pending_top_up"}
+{"text":"Why hasn't my top-up gone through?","label":"pending_top_up"}
+{"text":"When will the cash that I put in the ATM be cleared from pending status?","label":"pending_cash_withdrawal"}
+{"text":"Asked for $100 but only got $20. Why would this happen?","label":"wrong_amount_of_cash_received"}
+{"text":"How can I get cash back? The ATM just gave me the wrong amount that I've been actually charged though...","label":"wrong_amount_of_cash_received"}
+{"text":"Can you track my card for me?","label":"card_arrival"}
+{"text":"Why was my exchange rate a different amount than usual?","label":"card_payment_wrong_exchange_rate"}
+{"text":"I tried to withdraw 40 pounds but only 20 came out. Did you steal my money?","label":"wrong_amount_of_cash_received"}
+{"text":"My cash withdrawal shows as pending still.","label":"pending_cash_withdrawal"}
+{"text":"I'm still waiting on my new card to be delivered!","label":"card_arrival"}
+{"text":"I would like to cancel a transfer...is this possible?","label":"cancel_transfer"}
+{"text":"Is the 1 pound charge I can see an error or an incorrect entry?","label":"extra_charge_on_statement"}
+{"text":"Can you tell me if I can track the card you sent me?","label":"card_arrival"}
+{"text":"I tried to get some money but the machine was not working .The transaction still seems in progress! Can you please check what's going on.I don't want to be charged for money that I did not received.","label":"pending_cash_withdrawal"}
+{"text":"My exchange seems to have something wrong with it. I changed over Russian Ruble to UK pounds and it appears I was charged way more than I was supposed to be.","label":"card_payment_wrong_exchange_rate"}
+{"text":"Where do I go to add a new card?","label":"card_linking"}
+{"text":"Why do i have an extra fee on my statement?","label":"extra_charge_on_statement"}
+{"text":"I just checked my statement and saw a $1 charge, why is it there?","label":"extra_charge_on_statement"}
+{"text":"Why did I only receive a partial amount of what I tried to withdraw?","label":"wrong_amount_of_cash_received"}
+{"text":"I finally got my card. Now I want to link it. Is that something you have to do or can I do that?","label":"card_linking"}
+{"text":"I am still waiting on my card?","label":"card_arrival"}
+{"text":"The exchange rate applied is wrong for my international purchase.","label":"card_payment_wrong_exchange_rate"}
+{"text":"Why did I only get $20 when I asked for $100?","label":"wrong_amount_of_cash_received"}
+{"text":"The machine didn't work earlier when I went to get money out and now my account says transaction in progress.Why?","label":"pending_cash_withdrawal"}
+{"text":"I received the wrong amount of cash.","label":"wrong_amount_of_cash_received"}
+{"text":"I found my card. How can I put it into my app?","label":"card_linking"}
+{"text":"Am I able to stop a transfer?","label":"cancel_transfer"}
+{"text":"It's been a week since you sent my card and I still don't have it.","label":"card_arrival"}
+{"text":"My transaction is on the wrong account.","label":"cancel_transfer"}
+{"text":"Why is there an extra charge on my statement.","label":"extra_charge_on_statement"}
+{"text":"I took out some cash from the ATM but it is still showing the transaction is pending.","label":"pending_cash_withdrawal"}
