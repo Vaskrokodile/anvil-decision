@@ -143,7 +143,7 @@ export default function ConfigStep({
         type: 'module',
       });
       workerRef.current = worker;
-      const done = await new Promise<{ w: Float32Array; b: Float32Array; backend: 'cpu' | 'wgsl'; loss: number; acc: number }>(
+      const done = await new Promise<{ w: Float32Array; b: Float32Array; backend: 'cpu' | 'wgsl'; loss: number; acc: number; valAcc: number | null; valN: number; trainN: number }>(
         (resolve, reject) => {
           worker.onmessage = (e: MessageEvent<TrainMsg>) => {
             const m = e.data;
@@ -166,6 +166,7 @@ export default function ConfigStep({
               epochs: config.epochs,
               seed: 1337,
               backend: report?.ok ? 'auto' : 'cpu',
+              valFrac: 0.2,
             },
           };
           worker.postMessage(req, [x.buffer]);
@@ -182,6 +183,9 @@ export default function ConfigStep({
         backend: done.backend,
         loss: done.loss,
         acc: done.acc,
+        valAcc: done.valAcc ?? undefined,
+        valN: done.valN,
+        trainN: done.trainN,
         trainedAt: new Date().toISOString(),
         rows: trainRows.length,
       };
@@ -214,6 +218,9 @@ export default function ConfigStep({
         backend: 'cpu' | 'wgsl';
         loss: number;
         acc: number;
+        valAcc: number | null;
+        valN: number;
+        trainN: number;
       }>((resolve, reject) => {
         worker.onmessage = (e: MessageEvent<FtMsg>) => {
           const m = e.data;
@@ -239,6 +246,7 @@ export default function ConfigStep({
           seed: 1337,
           backend: report?.ok ? 'auto' : 'cpu',
           maxSeq: Math.min(config.seqLen, 128),
+          valFrac: 0.2,
         };
         worker.postMessage(req);
       });
@@ -255,6 +263,9 @@ export default function ConfigStep({
         backend: done.backend,
         loss: done.loss,
         acc: done.acc,
+        valAcc: done.valAcc ?? undefined,
+        valN: done.valN,
+        trainN: done.trainN,
         rows: trainRows.length,
         maxSeq: Math.min(config.seqLen, 128),
         trainedAt: new Date().toISOString(),
@@ -279,6 +290,9 @@ export default function ConfigStep({
         labels: result.labels.join('\n'),
         loss: String(result.loss),
         acc: String(result.acc),
+        ...(result.valAcc != null ? { valAcc: String(result.valAcc) } : {}),
+        valN: String(result.valN ?? 0),
+        trainN: String(result.trainN ?? result.rows),
         rows: String(result.rows),
         trainedAt: result.trainedAt,
         backend: result.backend,
@@ -309,6 +323,9 @@ export default function ConfigStep({
         maxSeq: String(ftResult.maxSeq),
         loss: String(ftResult.loss),
         acc: String(ftResult.acc),
+        ...(ftResult.valAcc != null ? { valAcc: String(ftResult.valAcc) } : {}),
+        valN: String(ftResult.valN ?? 0),
+        trainN: String(ftResult.trainN ?? ftResult.rows),
         rows: String(ftResult.rows),
         trainedAt: ftResult.trainedAt,
         backend: ftResult.backend,
@@ -352,7 +369,7 @@ export default function ConfigStep({
     <Step
       index="05"
       title="Configure & train"
-      lede="Engine v1 is live: a linear head over frozen MiniLM embeddings, trained in a Worker — WGSL compute when your adapter allows, CPU otherwise. LoRA and full fine-tune are the next milestone."
+      lede="Two engines are live: a linear head over frozen MiniLM embeddings, or real encoder backprop (LoRA / full fine-tune) through our own WGSL/CPU backend. Metrics report a held-out 20% split — val accuracy is what the model does on rows it never trained on."
     >
       <div className="grid gap-3 lg:grid-cols-5">
         {/* left: method + hyperparams */}
@@ -522,7 +539,7 @@ export default function ConfigStep({
               >
                 <Play size={13} weight="fill" />
                 {config.mode === 'head' ? 'Train head' : config.mode === 'lora' ? `LoRA r=${rank}` : 'Full fine-tune'}{' '}
-                — {trainRows.length} rows · {labels.length} classes
+                — {trainRows.length} rows · {labels.length} classes · 80/20 split
               </button>
             ) : phase === 'embed' ? (
               <div className="rounded-full border border-line px-4 py-3 font-mono text-[11px] uppercase tracking-[0.15em] text-dim">
@@ -547,8 +564,8 @@ export default function ConfigStep({
             {history.length > 0 && (
               <div className="rounded-xl border border-line bg-paper p-3">
                 <div className="mb-1 flex items-center justify-between font-mono text-[10px] text-faint">
-                  <span>loss {history[history.length - 1].loss.toFixed(3)}</span>
-                  <span>acc {(history[history.length - 1].acc * 100).toFixed(0)}%</span>
+                  <span>train loss {history[history.length - 1].loss.toFixed(3)}</span>
+                  <span>train acc {(history[history.length - 1].acc * 100).toFixed(0)}%</span>
                 </div>
                 <LossCurve history={history} />
               </div>
@@ -562,10 +579,17 @@ export default function ConfigStep({
 
             {result && (
               <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest">
+                <div className="flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-widest">
                   <Tag tone="blue">trained · {result.backend}</Tag>
                   <Tag>loss {result.loss.toFixed(3)}</Tag>
-                  <Tag>acc {(result.acc * 100).toFixed(0)}%</Tag>
+                  <Tag>train {(result.acc * 100).toFixed(0)}% · n={result.trainN ?? result.rows}</Tag>
+                  {result.valAcc != null ? (
+                    <Tag tone="blue">
+                      val {(result.valAcc * 100).toFixed(0)}% · n={result.valN}
+                    </Tag>
+                  ) : (
+                    <Tag tone="faint">no val split</Tag>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <button
@@ -595,7 +619,14 @@ export default function ConfigStep({
                     {ftResult.mode} · {ftResult.backend}
                   </Tag>
                   <Tag>loss {ftResult.loss.toFixed(3)}</Tag>
-                  <Tag>acc {(ftResult.acc * 100).toFixed(0)}%</Tag>
+                  <Tag>train {(ftResult.acc * 100).toFixed(0)}% · n={ftResult.trainN ?? ftResult.rows}</Tag>
+                  {ftResult.valAcc != null ? (
+                    <Tag tone="blue">
+                      val {(ftResult.valAcc * 100).toFixed(0)}% · n={ftResult.valN}
+                    </Tag>
+                  ) : (
+                    <Tag tone="faint">no val split</Tag>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <button

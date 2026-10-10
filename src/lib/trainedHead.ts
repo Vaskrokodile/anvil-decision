@@ -14,6 +14,10 @@ export interface TrainedHead {
   backend: 'cpu' | 'wgsl';
   loss: number;
   acc: number;
+  /** held-out accuracy at end of training — undefined for older artifacts */
+  valAcc?: number;
+  valN?: number;
+  trainN?: number;
   trainedAt: string;
   rows: number;
 }
@@ -42,6 +46,9 @@ export function headFromSafetensors(
     backend: 'cpu',
     loss: Number(meta.loss ?? 0),
     acc: Number(meta.acc ?? 0),
+    valAcc: meta.valAcc != null ? Number(meta.valAcc) : undefined,
+    valN: meta.valN != null ? Number(meta.valN) : undefined,
+    trainN: meta.trainN != null ? Number(meta.trainN) : undefined,
     trainedAt: meta.trainedAt ?? '',
     rows: Number(meta.rows ?? 0),
   };

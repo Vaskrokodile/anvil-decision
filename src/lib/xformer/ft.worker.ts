@@ -5,6 +5,7 @@ import { loadMiniLMWeights } from './weights';
 import { CpuEncoder } from './cpu';
 import { WgslEncoder } from './wgsl';
 import { softmaxCE } from '../head';
+import { mulberry, stratifiedSplit } from '../split';
 
 export interface FtRequest {
   type: 'train';
@@ -20,6 +21,8 @@ export interface FtRequest {
   backend: 'auto' | 'cpu';
   /** padded length, ≤ spec.maxPos */
   maxSeq: number;
+  /** fraction of rows held out for validation (0 disables the split) */
+  valFrac?: number;
 }
 
 export type FtMsg =
@@ -34,6 +37,10 @@ export type FtMsg =
       backend: 'cpu' | 'wgsl';
       loss: number;
       acc: number;
+      /** held-out accuracy — null when the split left no val rows */
+      valAcc: number | null;
+      valN: number;
+      trainN: number;
     }
   | { type: 'error'; message: string };
 
@@ -41,17 +48,6 @@ const ctx = self as unknown as {
   onmessage: (e: MessageEvent<FtRequest>) => void;
   postMessage: (m: FtMsg, transfer?: Transferable[]) => void;
 };
-
-function mulberry(seed: number) {
-  let s = seed >>> 0;
-  return () => {
-    s |= 0;
-    s = (s + 0x6d2b79f5) | 0;
-    let t = Math.imul(s ^ (s >>> 15), 1 | s);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
 
 /** Tiny linear head on the CLS row — trained jointly, AdamW inline. */
 class Head {
@@ -175,7 +171,12 @@ async function run(req: FtRequest, post: (m: FtMsg, t?: Transferable[]) => void)
   const c = req.nClasses;
   const rng = mulberry(req.seed);
   const head = new Head(d, c, rng);
-  const order = Array.from({ length: req.texts.length }, (_, i) => i);
+  const { train: trainIdx, val: valIdx } = stratifiedSplit(
+    req.labels,
+    req.valFrac ?? 0.2,
+    req.seed,
+  );
+  const order = trainIdx;
   const BATCH = 8;
   const dz = new Float32Array(c);
   const logits = new Float32Array(c);
@@ -238,6 +239,20 @@ async function run(req: FtRequest, post: (m: FtMsg, t?: Transferable[]) => void)
     });
   }
 
+  // held-out eval: forward each val row, no grads
+  let valAcc: number | null = null;
+  if (valIdx.length > 0) {
+    let hit = 0;
+    for (const r of valIdx) {
+      const hidden = await enc.forward(allIds[r], allMask[r]);
+      head.logits(hidden.slice(0, d), logits);
+      let best = 0;
+      for (let j = 1; j < c; j++) if (logits[j] > logits[best]) best = j;
+      if (best === req.labels[r]) hit++;
+    }
+    valAcc = hit / valIdx.length;
+  }
+
   const params = await enc.trainableWeights();
   const msg = {
     type: 'done' as const,
@@ -247,6 +262,9 @@ async function run(req: FtRequest, post: (m: FtMsg, t?: Transferable[]) => void)
     backend: enc.kind,
     loss: lastLoss,
     acc: lastAcc,
+    valAcc,
+    valN: valIdx.length,
+    trainN: trainIdx.length,
   };
   const transfers = [
     head.w.buffer,

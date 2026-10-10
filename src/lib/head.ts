@@ -17,6 +17,8 @@ export interface TrainInit {
   epochs: number;
   seed: number;
   backend: 'cpu' | 'wgsl' | 'auto';
+  /** fraction of rows held out for validation (0 disables the split) */
+  valFrac?: number;
 }
 
 export interface StepReport {
@@ -164,12 +166,18 @@ export class CpuHead implements HeadBackend {
   }
 }
 
-/** Mean CE loss + accuracy over a full logits matrix. */
-export function evalLogits(logits: Float32Array, y: Uint32Array, c: number) {
-  const n = y.length;
+/** Mean CE loss + accuracy over a logits matrix; `idx` restricts to a row subset. */
+export function evalLogits(
+  logits: Float32Array,
+  y: Uint32Array,
+  c: number,
+  idx?: ArrayLike<number>,
+) {
+  const n = idx ? idx.length : y.length;
   let loss = 0;
   let hits = 0;
-  for (let r = 0; r < n; r++) {
+  for (let i = 0; i < n; i++) {
+    const r = idx ? idx[i] : i;
     loss += softmaxCE(logits, r * c, c, y[r]);
     let best = 0;
     for (let j = 1; j < c; j++) if (logits[r * c + j] > logits[r * c + best]) best = j;

@@ -20,6 +20,10 @@ export interface FtArtifact {
   backend: 'cpu' | 'wgsl';
   loss: number;
   acc: number;
+  /** held-out accuracy at end of training — undefined for older artifacts */
+  valAcc?: number;
+  valN?: number;
+  trainN?: number;
   rows: number;
   maxSeq: number;
   trainedAt: string;
@@ -60,6 +64,9 @@ export function ftFromSafetensors(
     backend: 'cpu',
     loss: Number(meta.loss ?? 0),
     acc: Number(meta.acc ?? 0),
+    valAcc: meta.valAcc != null ? Number(meta.valAcc) : undefined,
+    valN: meta.valN != null ? Number(meta.valN) : undefined,
+    trainN: meta.trainN != null ? Number(meta.trainN) : undefined,
     rows: Number(meta.rows ?? 0),
     maxSeq: Number(meta.maxSeq ?? 128),
     trainedAt: meta.trainedAt ?? '',
