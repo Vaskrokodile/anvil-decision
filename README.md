@@ -14,9 +14,10 @@ forward pass → calibrated answers).
 |---|---|
 | Hardware probe | WebGPU adapter → tier → which models fit |
 | Typed-decision inference | GLiNER2.5-Decide (custom `gliner2` ONNX driver) + open-jev family (`kev-0.6b`, `open-jev`, `kev-4b`), WebGPU or WASM |
-| Dataset builder | `.jsonl` / `.csv` / `.json` / `.txt` import, sector templates, column mapping |
+| Dataset builder | `.jsonl` / `.csv` / `.json` / `.txt` import, sector templates, column mapping — plus bundled starter sets and Hugging Face import (public datasets → rows in-tab), health stats (dupes, class balance, label detection), dedupe |
 | **Training engine v1** | Linear head over frozen MiniLM-L6 embeddings — WGSL compute or CPU, real loss/accuracy, exports `.safetensors` |
 | **Training engine v2** | Our own BERT encoder forward **and backward** (attention, LayerNorm, GELU, LoRA, AdamW) implemented in WGSL — LoRA and full fine-tune of MiniLM-L6 in a Worker |
+| Held-out eval | Seeded stratified 80/20 train/val split in both engines; reported `val` accuracy is on rows the model never trained on |
 | Artifacts | `.safetensors` export + reload; trained heads/adapters run in the Run step |
 
 ## What's not
@@ -43,6 +44,7 @@ Verification scripts (Node ≥22, strips TS types):
 node scripts/parity.mts     # encoder forward == transformers.js MiniLM (cos 1.0)
 node scripts/ft-smoke.mts   # CPU LoRA fine-tune: loss 0.93 → 0.009, acc → 1.0
 node scripts/xformer-smoke.mts  # finite-difference grad check
+node scripts/fetch-starter.mts  # regenerate public/datasets/* from HF
 ```
 
 ## Stack
@@ -54,5 +56,7 @@ WebGPU/WASM) · open-jev · custom WGSL compute engine · three.js.
 
 Code: MIT (see `LICENSE`). Model weights keep their own licenses —
 GLiNER2.5-* are Apache-2.0 (fine-tuning allowed; Fastino trademarks not
-included), MiniLM Apache-2.0, kev models per their repos. Anvil is an
+included), MiniLM Apache-2.0, kev models per their repos. Bundled starter
+datasets in `public/datasets/` are subsets of public Hugging Face datasets —
+each entry in `index.json` names its source and license. Anvil is an
 independent project, not affiliated with Fastino.

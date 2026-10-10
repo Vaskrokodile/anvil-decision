@@ -6,6 +6,7 @@ const LINKS: [string, string][] = [
   ['Roster', '#roster'],
   ['Sectors', '#sectors'],
   ['Pipeline', '#pipeline'],
+  ['Bench', '#/bench'],
 ];
 
 export default function Nav({ onStudio }: { onStudio: () => void }) {

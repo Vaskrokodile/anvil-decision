@@ -20,7 +20,9 @@ selection → dataset builder → job spec. Landing + Studio SPA.
 - `src/data/models.ts` — model roster (real HF ids, params, tiers). Edit candidates here.
 - `src/data/sectors.ts` — sector definitions + dataset schemas.
 - `src/lib/gpu.ts` — WebGPU probe + tier classification (T0–T4).
-- `src/lib/dataset.ts` — .jsonl/.csv/.json/.txt parsers.
+- `src/lib/dataset.ts` — .jsonl/.csv/.json/.txt parsers + `analyzeDataset()` health stats (dupes, per-column uniques, label guess, warnings) + `dedupeDataset()`.
+- `src/lib/hfDatasets.ts` — datasets-server client: `parseDatasetRef` (id or URL), `fetchSplits`, `fetchRows` (ClassLabel→names, retry on 429). Shared with `scripts/fetch-starter.mts`, which regenerates `public/datasets/*.jsonl` + `index.json` (bundled starter sets).
+- `src/lib/split.ts` — seeded stratified train/val split + `mulberry` rng. Both workers hold out 20% (`valFrac`) and report `valAcc`/`valN`/`trainN` in their `done` messages.
 - `src/components/AuroraCanvas.tsx` — three.js star field over CSS aurora (lazy chunk).
 - `src/studio/` — 5-step console: probe → model → dataset → run → configure/train.
 - `src/lib/jev.ts` — open-jev wrapper (`kev-0.6b` / `open-jev` / `kev-4b`).

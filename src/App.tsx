@@ -8,15 +8,17 @@ import { useGpuReport } from './lib/useGpu';
 import { TIER_LABELS } from './data/models';
 
 const Studio = lazy(() => import('./studio/Studio'));
+const BenchPage = lazy(() => import('./bench/BenchPage'));
 
-type Route = '/' | '/studio';
+type Route = '/' | '/studio' | '/bench';
 
 function routeFromHash(): Route {
-  return location.hash.replace('#', '') === '/studio' ? '/studio' : '/';
+  const h = location.hash.replace('#', '');
+  return h === '/studio' ? '/studio' : h === '/bench' ? '/bench' : '/';
 }
 
-/** Minimal light-theme top bar for the studio route (Nav is hero-styled/dark). */
-function StudioBar() {
+/** Minimal light-theme top bar for inner routes (Nav is hero-styled/dark). */
+function ChromeBar({ label }: { label: string }) {
   const gpu = useGpuReport();
   return (
     <div className="mx-auto flex h-16 max-w-[1340px] items-center justify-between px-6">
@@ -25,7 +27,7 @@ function StudioBar() {
         <span className="font-sans text-[15px] font-semibold tracking-[0.22em] text-fg">
           ANVIL
         </span>
-        <span className="font-mono text-[10px] tracking-widest text-faint">studio</span>
+        <span className="font-mono text-[10px] tracking-widest text-faint">{label}</span>
       </a>
       <div className="flex items-center gap-4">
         <span className="hidden items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-faint sm:flex">
@@ -64,12 +66,12 @@ export default function App() {
     location.hash = '/studio';
   }, []);
 
-  if (route === '/studio') {
+  if (route === '/studio' || route === '/bench') {
     return (
       <div className="min-h-svh bg-paper text-fg">
-        <StudioBar />
+        <ChromeBar label={route === '/studio' ? 'studio' : 'bench'} />
         <Suspense fallback={<div className="min-h-svh" />}>
-          <Studio />
+          {route === '/studio' ? <Studio /> : <BenchPage />}
         </Suspense>
         <Footer />
       </div>
