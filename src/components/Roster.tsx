@@ -4,7 +4,7 @@ import { ArrowUpRight } from '@phosphor-icons/react';
 import { MODELS, HONORABLE_MENTIONS, ARCH_LABELS, fitsTier, type Sector } from '../data/models';
 import { useGpuReport } from '../lib/useGpu';
 import { fmtBytes } from '../lib/gpu';
-import { SectionHeader, Tag, FitBadge } from './ui';
+import { SectionHeader, FitBadge } from './ui';
 
 const FILTERS: { id: Sector | 'all' | 'fastino'; label: string }[] = [
   { id: 'all', label: 'All' },
@@ -31,8 +31,8 @@ export default function Roster() {
       <div className="mx-auto max-w-[1340px] px-6">
         <SectionHeader
           index="03 — roster"
-          title="Sub-1B specialists, weighed for your GPU"
-          lede="Eleven candidates at or under the 1B ceiling. Fastino's GLiNER2.5 line covers decisions, extraction and guardrails; decoder LMs round out the general sector. The fit column is computed live against your probed adapter."
+          title="Small-model candidates, weighed for your GPU"
+          lede="This roster is a hardware-fit guide, not a list of trainable backends. GLiNER2.5 Decide has a wired inference driver; other checkpoints need runtime integration. Current fine-tuning updates MiniLM-L6, not these roster weights."
         />
 
         <div className="mb-5 flex flex-wrap gap-2">
@@ -56,7 +56,7 @@ export default function Roster() {
             <table className="w-full min-w-[980px] border-collapse text-left">
               <thead>
                 <tr className="border-b border-line">
-                  {['Model', 'HF repo', 'Params', 'Weights', 'Arch', 'Min tier', 'Train', 'Runtime', 'Fit'].map(
+                  {['Model', 'HF repo', 'Params', 'Weights', 'Arch', 'Min tier', 'Training', 'Inference', 'Fit estimate'].map(
                     (h) => (
                       <th
                         key={h}
@@ -101,14 +101,14 @@ export default function Roster() {
                       {ARCH_LABELS[m.arch]}
                     </td>
                     <td className="px-5 py-4 font-mono text-[11px] text-dim">T{m.minTier}</td>
-                    <td className="px-5 py-4">
-                      <div className="flex gap-1.5">
-                        {m.trainMode.map((t) => (
-                          <Tag key={t}>{t}</Tag>
-                        ))}
-                      </div>
+                    <td className="px-5 py-4 font-mono text-[11px] text-faint">not wired</td>
+                    <td className="px-5 py-4 font-mono text-[11px] text-dim">
+                      {m.runtime === 'planned'
+                        ? 'planned'
+                        : m.onnx
+                          ? 'GLiNER2 Decide'
+                          : 'JEV selector'}
                     </td>
-                    <td className="px-5 py-4 font-mono text-[11px] text-dim">{m.runtime}</td>
                     <td className="px-5 py-4">
                       <FitBadge fit={gpu ? fitsTier(m, gpu.tier) : 'unknown'} />
                     </td>

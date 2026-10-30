@@ -33,11 +33,11 @@ export default function ModelStep({
   return (
     <Step
       index="02"
-      title="Pick a base model"
+      title="Choose an inference target"
       lede={
         report?.ok
-          ? `Tier ${tier} assigned — models are marked fits / marginal / won’t fit against it.`
-          : 'Probe your hardware first — or browse anyway.'
+          ? `Tier ${tier} assigned — fit badges are rough resource estimates. This roster selects inference candidates; the trainer uses MiniLM-L6.`
+          : 'Probe your hardware first — or browse inference candidates anyway.'
       }
       onNext={onNext}
       nextDisabled={!modelId}
@@ -88,9 +88,13 @@ export default function ModelStep({
                 <span>{ARCH_LABELS[m.arch]}</span>
                 <span>min T{m.minTier}</span>
                 <span className="flex gap-1">
-                  {m.trainMode.map((t) => (
-                    <Tag key={t}>{t}</Tag>
-                  ))}
+                  <Tag tone="faint">
+                    {m.runtime === 'planned'
+                      ? 'inference planned'
+                      : m.onnx
+                        ? 'driver wired'
+                        : 'runtime not linked'}
+                  </Tag>
                 </span>
               </div>
             </button>

@@ -25,7 +25,7 @@ export default function ProbeStep({
     <Step
       index="01"
       title="Hardware probe"
-      lede="Reading navigator.gpu — adapter identity, buffer limits, fp16 support. This decides what you’re allowed to train."
+      lede="Reading navigator.gpu — adapter identity, buffer limits and fp16 support. This informs the MiniLM trainer’s backend and memory estimate."
       onNext={onNext}
       nextDisabled={!report}
     >
@@ -41,7 +41,7 @@ export default function ProbeStep({
           </p>
           <p className="mb-4 text-[13px] text-dim">{report.error}</p>
           <p className="font-mono text-[11px] text-faint">
-            Fallback path: WASM/CPU inference only — training is disabled on this machine.
+            CPU training and WASM inference remain available; encoder fine-tuning may be slow without WebGPU.
           </p>
         </div>
       ) : (

@@ -3,8 +3,9 @@ import { motion } from 'motion/react';
 import { CheckCircle, Download, Play, SpinnerGap } from '@phosphor-icons/react';
 import type { GpuReport } from '../lib/gpu';
 import { fmtBytes } from '../lib/gpu';
-import type { Dataset } from '../lib/dataset';
-import type { ModelEntry, TrainMode } from '../data/models';
+import { analyzeDataset, type Dataset } from '../lib/dataset';
+import { SECTORS } from '../data/sectors';
+import { MODELS, type ModelEntry, type TrainMode } from '../data/models';
 import { Tag } from '../components/ui';
 import Step from './Step';
 import type { TrainConfig } from './Studio';
@@ -15,21 +16,26 @@ import { setTrainedHead, type TrainedHead } from '../lib/trainedHead';
 import type { FtMsg, FtRequest } from '../lib/xformer/ft.worker';
 import { setFtArtifact, type FtArtifact } from '../lib/xformer/ft';
 import { MINILM_L6, paramShape } from '../lib/xformer/spec';
+import { setWorkspaceItem } from '../lib/workspace';
+import { createJobSpec, parseJobSpec } from '../lib/jobSpec';
 
-/** Rough resident-memory estimate in MB for a training config. */
-function estimateMB(model: ModelEntry, cfg: TrainConfig): number {
-  const p = model.paramsM;
-  const weightsFP32 = p * 4;
-  const weightsFP16 = p * 2;
-  const act = Math.min(2048, (cfg.batch * cfg.seqLen * 8) / 1024);
-  switch (cfg.mode) {
-    case 'full':
-      return weightsFP32 * 4 + act;
-    case 'lora':
-      return weightsFP16 + p * 0.02 * 16 + act;
-    case 'head':
-      return weightsFP16 + act * 0.5;
-  }
+function estimateMB(cfg: TrainConfig, rank: number, classes: number): number {
+  const { layers, dModel, dFfn, heads } = MINILM_L6;
+  const fullParams = layers * (4 * dModel * dModel + 2 * dModel * dFfn + 9 * dModel + dFfn) + 2 * dModel;
+  const headParams = dModel * classes + classes;
+  const encoderAdapters = layers * rank * (10 * dModel + 2 * dFfn);
+  const tunableEncoderParams = cfg.mode === 'full' ? fullParams : cfg.mode === 'lora' ? encoderAdapters : 0;
+  const trainableParams = tunableEncoderParams + headParams;
+  const seq = Math.min(cfg.seqLen, 128);
+  const activationFloats =
+    cfg.mode === 'head'
+      ? 0
+      : layers * (9 * dModel * seq + 2 * dFfn * seq + heads * seq * seq);
+  const parameterStateBytes = cfg.mode === 'full' ? 12 : 16;
+  const optimizerMB = (trainableParams * parameterStateBytes) / 1_000_000;
+  const fullHeadWeightsMB = cfg.mode === 'full' ? (headParams * 4) / 1_000_000 : 0;
+  const activationMB = (activationFloats * 4 * 1.5) / (1024 * 1024);
+  return 91 + optimizerMB + fullHeadWeightsMB + activationMB + (cfg.mode === 'head' ? 1 : 0);
 }
 
 const LR_OPTIONS = [5e-5, 1e-4, 5e-4, 1e-3, 5e-3, 1e-2];
@@ -37,7 +43,7 @@ const LR_OPTIONS = [5e-5, 1e-4, 5e-4, 1e-3, 5e-3, 1e-2];
 const MODE_LABELS: Record<TrainMode, string> = {
   head: 'Head — linear probe over frozen MiniLM embeddings',
   lora: 'LoRA — adapters on the MiniLM encoder (own WGSL forward/backward)',
-  full: 'Full fine-tune — every MiniLM encoder parameter moves',
+  full: 'Full fine-tune — transformer weights move; token embeddings stay frozen',
 };
 
 const MAX_ROWS = 512;
@@ -76,6 +82,9 @@ export default function ConfigStep({
   dataset,
   config,
   onConfig,
+  onDataset,
+  onModel,
+  onStorageError,
   onTrained,
 }: {
   report: GpuReport | null;
@@ -83,12 +92,12 @@ export default function ConfigStep({
   dataset: Dataset | null;
   config: TrainConfig;
   onConfig: (c: TrainConfig) => void;
+  onDataset: (d: Dataset) => void;
+  onModel: (hf: string | null) => void;
+  onStorageError?: (message: string) => void;
   onTrained?: () => void;
 }) {
-  const est = useMemo(() => (model ? estimateMB(model, config) : 0), [model, config]);
-  const budget = report?.weightsBudgetMB ?? 512;
-  const over = est > budget;
-  const ready = model && dataset && !over;
+  const budget = report?.ok ? report.weightsBudgetMB : null;
 
   // --- training state -----------------------------------------------------
   const [textCol, setTextCol] = useState<string | null>(null);
@@ -102,13 +111,41 @@ export default function ConfigStep({
   const [ftResult, setFtResult] = useState<FtArtifact | null>(null);
   const [liveBackend, setLiveBackend] = useState<string | null>(null);
   const [trainErr, setTrainErr] = useState<string | null>(null);
+  const reportStorage = onStorageError ?? setTrainErr;
+  const jobInputRef = useRef<HTMLInputElement>(null);
   const workerRef = useRef<Worker | null>(null);
+  const runIdRef = useRef(0);
+  const cancelRef = useRef<(() => void) | null>(null);
 
-  useEffect(() => () => workerRef.current?.terminate(), []);
+  const cancelTraining = () => {
+    runIdRef.current++;
+    workerRef.current?.terminate();
+    workerRef.current = null;
+    cancelRef.current?.();
+    cancelRef.current = null;
+    setPhase('idle');
+    setTrainErr(null);
+  };
+
+  useEffect(
+    () => () => {
+      runIdRef.current++;
+      workerRef.current?.terminate();
+      cancelRef.current?.();
+    },
+    [],
+  );
 
   const cols = dataset?.columns ?? [];
-  const tCol = textCol ?? cols[0] ?? '';
-  const lCol = labelCol ?? cols[cols.length - 1] ?? '';
+  const health = useMemo(() => (dataset ? analyzeDataset(dataset) : null), [dataset]);
+  const schema = SECTORS.find((sector) => sector.id === dataset?.sector)?.schema ?? [];
+  const schemaText = schema.find((field) => field.role === 'input')?.field;
+  const schemaLabel = schema.find((field) => field.role === 'label')?.field;
+  const tCol = textCol && cols.includes(textCol) ? textCol : health?.textCol ?? schemaText ?? cols[0] ?? '';
+  const lCol =
+    labelCol && cols.includes(labelCol)
+      ? labelCol
+      : health?.labelGuess ?? schemaLabel ?? cols[cols.length - 1] ?? '';
 
   const trainRows = useMemo(() => {
     if (!dataset) return [];
@@ -123,10 +160,14 @@ export default function ConfigStep({
   );
 
   const busy = phase !== 'idle' && phase !== 'done';
-  const trainable = !busy && trainRows.length >= 8 && labels.length >= 2 && labels.length <= 64;
+  const trainable = !busy && tCol !== lCol && trainRows.length >= 8 && labels.length >= 2 && labels.length <= 64;
+  const est = useMemo(() => estimateMB(config, rank, labels.length), [config, rank, labels.length]);
+  const over = report?.ok === true && budget !== null && est > budget;
+  const ready = dataset !== null && trainable;
 
   const startTraining = async () => {
     if (!dataset) return;
+    const runId = ++runIdRef.current;
     setTrainErr(null);
     setHistory([]);
     setResult(null);
@@ -137,6 +178,7 @@ export default function ConfigStep({
         trainRows.map((r) => r[tCol].trim()),
         (d, t) => setEmbedPct(d / t),
       );
+      if (runId !== runIdRef.current) return;
       const y = Uint32Array.from(trainRows.map((r) => labels.indexOf(r[lCol].trim())));
 
       setPhase('train');
@@ -146,14 +188,23 @@ export default function ConfigStep({
       workerRef.current = worker;
       const done = await new Promise<{ w: Float32Array; b: Float32Array; backend: 'cpu' | 'wgsl'; loss: number; acc: number; valAcc: number | null; valN: number; trainN: number }>(
         (resolve, reject) => {
+          cancelRef.current = () => reject(new Error('Training cancelled.'));
           worker.onmessage = (e: MessageEvent<TrainMsg>) => {
             const m = e.data;
             if (m.type === 'progress')
               setHistory((h) => [...h, { epoch: m.epoch, loss: m.loss, acc: m.acc }]);
-            else if (m.type === 'done') resolve(m);
-            else reject(new Error(m.message));
+            else if (m.type === 'done') {
+              cancelRef.current = null;
+              resolve(m);
+            } else {
+              cancelRef.current = null;
+              reject(new Error(m.message));
+            }
           };
-          worker.onerror = (e) => reject(new Error(e.message));
+          worker.onerror = (e) => {
+            cancelRef.current = null;
+            reject(new Error(e.message));
+          };
           const req: TrainRequest = {
             type: 'train',
             init: {
@@ -173,6 +224,7 @@ export default function ConfigStep({
           worker.postMessage(req, [x.buffer]);
         },
       );
+      if (runId !== runIdRef.current) return;
       worker.terminate();
       workerRef.current = null;
 
@@ -191,8 +243,17 @@ export default function ConfigStep({
         rows: trainRows.length,
       };
       setResult(head);
+      // register + persist immediately — the artifact survives step switches/reloads
+      setTrainedHead(head);
+      void setWorkspaceItem('trainedHead', head).catch(() =>
+        reportStorage('Trained for this tab, but local persistence failed. Export before leaving.'),
+      );
       setPhase('done');
     } catch (e) {
+      if (runId !== runIdRef.current) return;
+      workerRef.current?.terminate();
+      workerRef.current = null;
+      cancelRef.current = null;
       setTrainErr(e instanceof Error ? e.message : String(e));
       setPhase('idle');
     }
@@ -201,6 +262,7 @@ export default function ConfigStep({
   /** LoRA / full fine-tune through our own encoder backend. */
   const startFinetune = async () => {
     if (!dataset) return;
+    const runId = ++runIdRef.current;
     setTrainErr(null);
     setHistory([]);
     setFtResult(null);
@@ -223,6 +285,7 @@ export default function ConfigStep({
         valN: number;
         trainN: number;
       }>((resolve, reject) => {
+        cancelRef.current = () => reject(new Error('Training cancelled.'));
         worker.onmessage = (e: MessageEvent<FtMsg>) => {
           const m = e.data;
           if (m.type === 'weights') setFetchPct(m.frac);
@@ -231,10 +294,18 @@ export default function ConfigStep({
             setPhase('train');
             setLiveBackend(m.backend);
             setHistory((h) => [...h, { epoch: m.epoch, loss: m.loss, acc: m.acc }]);
-          } else if (m.type === 'done') resolve(m);
-          else reject(new Error(m.message));
+          } else if (m.type === 'done') {
+            cancelRef.current = null;
+            resolve(m);
+          } else {
+            cancelRef.current = null;
+            reject(new Error(m.message));
+          }
         };
-        worker.onerror = (e) => reject(new Error(e.message));
+        worker.onerror = (e) => {
+          cancelRef.current = null;
+          reject(new Error(e.message));
+        };
         const req: FtRequest = {
           type: 'train',
           texts: trainRows.map((r) => r[tCol].trim()),
@@ -246,11 +317,13 @@ export default function ConfigStep({
           rank,
           seed: 1337,
           backend: report?.ok ? 'auto' : 'cpu',
+          batch: config.batch,
           maxSeq: Math.min(config.seqLen, 128),
           valFrac: 0.2,
         };
         worker.postMessage(req);
       });
+      if (runId !== runIdRef.current) return;
       worker.terminate();
       workerRef.current = null;
 
@@ -271,9 +344,17 @@ export default function ConfigStep({
         maxSeq: Math.min(config.seqLen, 128),
         trainedAt: new Date().toISOString(),
       };
+      setFtResult(artifact);
       setFtArtifact(artifact);
+      void setWorkspaceItem('ftArtifact', artifact).catch(() =>
+        reportStorage('Trained for this tab, but local persistence failed. Export before leaving.'),
+      );
       setPhase('done');
     } catch (e) {
+      if (runId !== runIdRef.current) return;
+      workerRef.current?.terminate();
+      workerRef.current = null;
+      cancelRef.current = null;
       setTrainErr(e instanceof Error ? e.message : String(e));
       setPhase('idle');
     }
@@ -336,41 +417,48 @@ export default function ConfigStep({
   };
 
   const exportSpec = () => {
-    if (!model || !dataset) return;
-    const spec = {
-      tool: 'anvil',
-      specVersion: 1,
-      createdAt: new Date().toISOString(),
-      hardware: {
-        tier: report?.tier ?? 0,
-        vendor: report?.vendor ?? null,
-        architecture: report?.architecture ?? null,
-        fp16: report?.fp16 ?? false,
-        weightsBudgetMB: budget,
-      },
-      model: { hf: model.hf, paramsM: model.paramsM, arch: model.arch },
-      dataset: {
-        name: dataset.name,
-        sector: dataset.sector,
-        columns: dataset.columns,
-        rows: dataset.rows.length,
-      },
+    if (!dataset) return;
+    const spec = createJobSpec({
+      targetModel: model,
+      dataset,
       training: config,
-    };
-    const blob = new Blob([JSON.stringify(spec, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `anvil-job-${Date.now()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+      rank,
+      textColumn: tCol,
+      labelColumn: lCol,
+    });
+    const bytes = new TextEncoder().encode(JSON.stringify(spec, null, 2));
+    if (bytes.length > 50 * 1024 * 1024) {
+      setTrainErr(
+        `Job bundle is ${(bytes.length / 1024 / 1024).toFixed(0)} MB — it will download, but exceeds the 50 MB re-import limit.`,
+      );
+    }
+    downloadBytes(`anvil-job-${Date.now()}.json`, bytes);
+  };
+
+  const importSpec = async (file: File) => {
+    try {
+      if (file.size > 50 * 1024 * 1024) throw new Error('Job file exceeds the 50 MB import limit.');
+      const spec = parseJobSpec(await file.text());
+      if (spec.targetModel && !MODELS.some((candidate) => candidate.hf === spec.targetModel)) {
+        throw new Error('Job references a model that is not in this Anvil roster.');
+      }
+      onDataset(spec.dataset);
+      onModel(spec.targetModel);
+      onConfig(spec.training);
+      setRank(spec.rank);
+      setTextCol(spec.columns.text);
+      setLabelCol(spec.columns.label);
+      setTrainErr(null);
+    } catch (e) {
+      setTrainErr(e instanceof Error ? e.message : 'Could not import that Anvil job.');
+    }
   };
 
   return (
     <Step
       index="05"
       title="Configure & train"
-      lede="Two engines are live: a linear head over frozen MiniLM embeddings, or real encoder backprop (LoRA / full fine-tune) through our own WGSL/CPU backend. Metrics report a held-out 20% split — val accuracy is what the model does on rows it never trained on."
+      lede="Both engines train a single-label MiniLM choice classifier: a linear head or encoder LoRA/full mode. WGSL is used when available with CPU fallback. Validation is held out; roster checkpoints are not fine-tuned here."
     >
       <div className="grid gap-3 lg:grid-cols-5">
         {/* left: method + hyperparams */}
@@ -440,7 +528,7 @@ export default function ConfigStep({
               [
                 ['epochs', 'epochs', 1, 40, 1],
                 ['batch', 'batch', 1, 64, 1],
-                ['seqLen', 'seq len', 128, 4096, 128],
+                ['seqLen', 'seq len', 32, 128, 32],
               ] as const
             ).map(([key, label, min, max, step]) => (
               <label key={key} className="flex flex-col gap-1.5">
@@ -497,39 +585,30 @@ export default function ConfigStep({
 
         {/* right: budget + actions */}
         <div className="flex flex-col rounded-2xl border border-line bg-card p-5 lg:col-span-2">
-          {model ? (
-            <>
-              <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.2em] text-faint">
-                Memory estimate · {config.mode}
-              </p>
-              <div className="mb-2 flex items-baseline justify-between font-mono text-[12px]">
-                <span
-                  className={
-                    over ? 'text-fg underline decoration-dashed underline-offset-4' : 'text-fg'
-                  }
-                >
-                  {fmtBytes(est)}
-                </span>
-                <span className="text-faint">/ {fmtBytes(budget)}</span>
-              </div>
-              <div className="mb-2 h-1.5 w-full rounded-full bg-line">
-                <div
-                  className={`h-full rounded-full transition-all ${over ? 'bar-over' : 'bg-ink'}`}
-                  style={{ width: `${Math.min(100, (est / budget) * 100)}%` }}
-                />
-              </div>
-              <p className="mb-6 font-mono text-[10px] leading-relaxed text-faint">
-                {over
-                  ? 'Over budget — drop to LoRA, shrink batch or seq len, or pick a smaller model.'
-                  : 'Within budget. Estimate is crude: weights + optimizer states + activation reserve.'}
-              </p>
-            </>
-          ) : (
-            <p className="mb-6 font-mono text-[11px] leading-relaxed text-dim">
-              No roster model picked — head training still works (it runs on the MiniLM
-              embedder, not the roster model).
-            </p>
-          )}
+          <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.2em] text-faint">
+            MiniLM working-set estimate · {config.mode}
+          </p>
+          <p className="mb-4 font-mono text-[10px] leading-relaxed text-dim">
+            This trainer updates MiniLM-L6 and a single-label classifier. The roster choice
+            {model ? ` (${model.name})` : ''} is not fine-tuned by this run.
+          </p>
+          <div className="mb-2 flex items-baseline justify-between font-mono text-[12px]">
+            <span className={over ? 'text-fg underline decoration-dashed underline-offset-4' : 'text-fg'}>
+              {fmtBytes(est)}
+            </span>
+            <span className="text-faint">/ {budget == null ? 'no GPU budget' : fmtBytes(budget)}</span>
+          </div>
+          <div className="mb-2 h-1.5 w-full rounded-full bg-line">
+            <div
+              className={`h-full rounded-full transition-all ${over ? 'bar-over' : 'bg-ink'}`}
+              style={{ width: `${budget ? Math.min(100, (est / budget) * 100) : 0}%` }}
+            />
+          </div>
+          <p className="mb-6 font-mono text-[10px] leading-relaxed text-faint">
+            {over
+              ? 'Estimate exceeds the adapter budget. The worker may fall back to CPU; actual memory varies by browser.'
+              : 'Rough estimate of base weights, optimizer state and encoder activations; not a hard limit.'}
+          </p>
 
           <div className="mt-auto flex flex-col gap-2.5">
             {phase === 'idle' || phase === 'done' ? (
@@ -560,6 +639,14 @@ export default function ConfigStep({
                 training{liveBackend ? ` · ${liveBackend}` : ''} · epoch{' '}
                 {Math.ceil(history[history.length - 1]?.epoch ?? 0)}/{config.epochs}
               </div>
+            )}
+            {busy && (
+              <button
+                onClick={cancelTraining}
+                className="self-end rounded-full border border-line px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-dim hover:border-fg hover:text-fg"
+              >
+                Cancel training
+              </button>
             )}
 
             {history.length > 0 && (
@@ -597,7 +684,7 @@ export default function ConfigStep({
                     {(result ?? ftResult)!.valAcc != null
                       ? `val ${((result ?? ftResult)!.valAcc! * 100).toFixed(0)}% on held-out rows`
                       : 'no val split'}{' '}
-                    — artifact in session, export or send to Run
+                    — saved locally · export or open in Run
                   </p>
                 </div>
               </motion.div>
@@ -675,14 +762,33 @@ export default function ConfigStep({
               </div>
             )}
 
-            <button
-              onClick={exportSpec}
-              disabled={!model || !dataset}
-              className="flex items-center justify-center gap-2 rounded-full border border-line px-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.15em] text-dim transition-colors hover:border-fg hover:text-fg disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <Download size={14} />
-              Export job spec
-            </button>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={exportSpec}
+                disabled={!dataset}
+                className="flex items-center justify-center gap-2 rounded-full border border-line px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.12em] text-dim transition-colors hover:border-fg hover:text-fg disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <Download size={14} />
+                Export job bundle
+              </button>
+              <button
+                onClick={() => jobInputRef.current?.click()}
+                className="flex items-center justify-center rounded-full border border-line px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.12em] text-dim transition-colors hover:border-fg hover:text-fg"
+              >
+                Import job bundle
+              </button>
+              <input
+                ref={jobInputRef}
+                type="file"
+                accept=".json"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) void importSpec(file);
+                  e.target.value = '';
+                }}
+              />
+            </div>
             <p className="flex items-center justify-between pt-1 font-mono text-[10px] text-faint">
               <span>{model ? model.name : 'no roster pick'}</span>
               <span>

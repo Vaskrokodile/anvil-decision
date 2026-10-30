@@ -28,6 +28,7 @@ import { Tag } from '../components/ui';
 import Step from './Step';
 
 const nowIso = () => new Date().toISOString();
+const PAGE_SIZE = 10;
 
 interface StarterMeta {
   file: string;
@@ -54,6 +55,7 @@ export default function DatasetStep({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [page, setPage] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // starter sets
@@ -71,6 +73,42 @@ export default function DatasetStep({
 
   const sector = SECTORS.find((s) => s.id === sectorId)!;
   const health = useMemo(() => (dataset ? analyzeDataset(dataset) : null), [dataset]);
+  const pageCount = dataset ? Math.max(1, Math.ceil(dataset.rows.length / PAGE_SIZE)) : 1;
+  const pageRows = dataset?.rows.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE) ?? [];
+
+  const updateCell = (rowIndex: number, column: string, value: string) => {
+    if (!dataset) return;
+    onDataset({
+      ...dataset,
+      rows: dataset.rows.map((row, i) => (i === rowIndex ? { ...row, [column]: value } : row)),
+    });
+  };
+
+  const addRow = () => {
+    if (!dataset) return;
+    const row = Object.fromEntries(dataset.columns.map((column) => [column, '']));
+    onDataset({ ...dataset, rows: [...dataset.rows, row] });
+    setPage(Math.floor(dataset.rows.length / PAGE_SIZE));
+  };
+
+  const removeRow = (rowIndex: number) => {
+    if (!dataset) return;
+    const rows = dataset.rows.filter((_, i) => i !== rowIndex);
+    onDataset({ ...dataset, rows });
+    setPage(Math.min(page, Math.max(0, Math.ceil(rows.length / PAGE_SIZE) - 1)));
+  };
+
+  const addLabelColumn = () => {
+    if (!dataset) return;
+    let name = 'label';
+    let suffix = 2;
+    while (dataset.columns.includes(name)) name = `label_${suffix++}`;
+    onDataset({
+      ...dataset,
+      columns: [...dataset.columns, name],
+      rows: dataset.rows.map((row) => ({ ...row, [name]: '' })),
+    });
+  };
 
   useEffect(() => {
     let live = true;
@@ -85,6 +123,7 @@ export default function DatasetStep({
 
   const scaffold = () => {
     setError(null);
+    setPage(0);
     onDataset({
       name: `${sector.id}-dataset`,
       sector: sector.id,
@@ -100,6 +139,7 @@ export default function DatasetStep({
     setBusy(true);
     try {
       const { columns, rows } = await parseFile(file);
+      setPage(0);
       onDataset({
         name: file.name.replace(/\.[^.]+$/, ''),
         sector: sector.id,
@@ -122,6 +162,7 @@ export default function DatasetStep({
       const r = await fetch(`/datasets/${s.file}`);
       if (!r.ok) throw new Error('missing');
       const { columns, rows } = parseJsonl(await r.text());
+      setPage(0);
       setSectorId(s.sector);
       onDataset({
         name: s.name.toLowerCase().replace(/\s+/g, '-'),
@@ -167,6 +208,7 @@ export default function DatasetStep({
     setHfGot(0);
     try {
       const { columns, rows } = await fetchRows(hfId, config, split, 512, setHfGot);
+      setPage(0);
       onDataset({
         name: `${hfId.split('/')[1]}-${split}`,
         sector: sector.id,
@@ -375,14 +417,35 @@ export default function DatasetStep({
       {/* preview */}
       {dataset && (
         <div className="overflow-hidden rounded-2xl border border-line bg-card">
-          <div className="flex items-center justify-between border-b border-line bg-paper px-4 py-2.5">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-paper px-4 py-2.5">
             <span className="font-mono text-[11px] text-fg">{dataset.name}</span>
             <span className="font-mono text-[10px] uppercase tracking-widest text-faint">
               {dataset.rows.length} rows · {dataset.columns.length} cols · {dataset.source}
             </span>
           </div>
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line-soft px-4 py-2">
+            <p className="font-mono text-[10px] text-faint">
+              Edit cells here. Training uses one text column and one label column (up to 512 rows).
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              {dataset.columns.length < 2 && (
+                <button
+                  onClick={addLabelColumn}
+                  className="rounded-full border border-line px-3 py-1 font-mono text-[10px] uppercase tracking-widest text-dim hover:border-fg hover:text-fg"
+                >
+                  Add label column
+                </button>
+              )}
+              <button
+                onClick={addRow}
+                className="rounded-full border border-line px-3 py-1 font-mono text-[10px] uppercase tracking-widest text-dim hover:border-fg hover:text-fg"
+              >
+                Add row
+              </button>
+            </div>
+          </div>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[520px] border-collapse text-left">
+            <table className="w-full min-w-[620px] border-collapse text-left">
               <thead>
                 <tr className="border-b border-line-soft">
                   {dataset.columns.map((c) => (
@@ -393,29 +456,70 @@ export default function DatasetStep({
                       {c}
                     </th>
                   ))}
+                  <th className="w-20 px-3 py-2 font-mono text-[10px] font-normal uppercase tracking-[0.15em] text-faint">
+                    row
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {dataset.rows.slice(0, 8).map((r, i) => (
-                  <tr key={i} className="border-b border-line-soft last:border-0">
-                    {dataset.columns.map((c) => (
-                      <td
-                        key={c}
-                        className="max-w-[280px] truncate px-3 py-2 font-mono text-[11.5px] text-dim"
-                      >
-                        {r[c] || <span className="text-faint">—</span>}
+                {pageRows.map((r, i) => {
+                  const rowIndex = page * PAGE_SIZE + i;
+                  return (
+                    <tr key={rowIndex} className="border-b border-line-soft last:border-0">
+                      {dataset.columns.map((c) => (
+                        <td key={c} className="max-w-[320px] px-2 py-1.5">
+                          <input
+                            aria-label={`${c}, row ${rowIndex + 1}`}
+                            value={r[c] ?? ''}
+                            onChange={(e) => updateCell(rowIndex, c, e.target.value)}
+                            className="w-full min-w-24 rounded-md border border-transparent bg-transparent px-2 py-1.5 font-mono text-[11.5px] text-fg outline-none focus:border-line focus:bg-paper"
+                          />
+                        </td>
+                      ))}
+                      <td className="px-3 py-1.5 text-right">
+                        <button
+                          onClick={() => removeRow(rowIndex)}
+                          aria-label={`Remove row ${rowIndex + 1}`}
+                          className="font-mono text-[10px] uppercase tracking-widest text-faint hover:text-fg"
+                        >
+                          Remove
+                        </button>
                       </td>
-                    ))}
+                    </tr>
+                  );
+                })}
+                {pageRows.length === 0 && (
+                  <tr>
+                    <td colSpan={dataset.columns.length + 1} className="px-4 py-6 font-mono text-[11px] text-faint">
+                      No rows yet. Add a row to start building this dataset.
+                    </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
-          {dataset.rows.length > 8 && (
-            <p className="border-t border-line-soft px-4 py-2 font-mono text-[10px] text-faint">
-              + {dataset.rows.length - 8} more rows
-            </p>
-          )}
+          <div className="flex items-center justify-between border-t border-line-soft px-4 py-2">
+            <span className="font-mono text-[10px] text-faint">
+              Rows {dataset.rows.length ? page * PAGE_SIZE + 1 : 0}–{Math.min((page + 1) * PAGE_SIZE, dataset.rows.length)} of {dataset.rows.length}
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                disabled={page === 0}
+                className="rounded-full border border-line px-3 py-1 font-mono text-[10px] uppercase tracking-widest text-dim disabled:opacity-40"
+              >
+                Previous
+              </button>
+              <span className="font-mono text-[10px] text-faint">{page + 1}/{pageCount}</span>
+              <button
+                onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+                disabled={page >= pageCount - 1}
+                className="rounded-full border border-line px-3 py-1 font-mono text-[10px] uppercase tracking-widest text-dim disabled:opacity-40"
+              >
+                Next
+              </button>
+            </div>
+          </div>
 
           {/* health */}
           {health && (
@@ -432,7 +536,13 @@ export default function DatasetStep({
                 )}
                 {health.dupes > 0 && (
                   <button
-                    onClick={() => onDataset(dedupeDataset(dataset))}
+                    onClick={() => {
+                      const deduped = dedupeDataset(dataset);
+                      onDataset(deduped);
+                      setPage((p) =>
+                        Math.min(p, Math.max(0, Math.ceil(deduped.rows.length / PAGE_SIZE) - 1)),
+                      );
+                    }}
                     className="ml-auto flex items-center gap-1.5 rounded-full border border-line px-3 py-1 font-mono text-[10px] uppercase tracking-[0.15em] text-dim transition-colors hover:border-fg hover:text-fg"
                   >
                     <Broom size={11} />

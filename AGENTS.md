@@ -14,6 +14,7 @@ selection → dataset builder → job spec. Landing + Studio SPA.
 - `npm run dev` — Vite dev server (http://localhost:5173)
 - `npm run build` — `tsc -b` + production build
 - `npm run lint` — oxlint
+- `npm test` — core parser, job bundle, and artifact round-trip tests
 
 ## Structure
 

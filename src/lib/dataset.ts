@@ -18,45 +18,56 @@ export interface Dataset {
 
 export class ParseError extends Error {}
 
-/** Minimal RFC-4180-ish CSV parser — quoted fields, escaped quotes, commas. */
-function parseCsvLine(line: string): string[] {
-  const out: string[] = [];
-  let cur = '';
-  let inQuotes = false;
-  for (let i = 0; i < line.length; i++) {
-    const c = line[i];
-    if (inQuotes) {
-      if (c === '"' && line[i + 1] === '"') {
-        cur += '"';
+function parseCsvRows(text: string): string[][] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let cell = '';
+  let quoted = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (quoted) {
+      if (c === '"' && text[i + 1] === '"') {
+        cell += '"';
         i++;
       } else if (c === '"') {
-        inQuotes = false;
+        quoted = false;
       } else {
-        cur += c;
+        cell += c;
       }
-    } else if (c === '"') {
-      inQuotes = true;
+    } else if (c === '"' && cell.length === 0) {
+      quoted = true;
     } else if (c === ',') {
-      out.push(cur);
-      cur = '';
+      row.push(cell.trim());
+      cell = '';
+    } else if (c === '\n' || c === '\r') {
+      if (c === '\r' && text[i + 1] === '\n') i++;
+      row.push(cell.trim());
+      if (row.some((value) => value.length > 0)) rows.push(row);
+      row = [];
+      cell = '';
     } else {
-      cur += c;
+      cell += c;
     }
   }
-  out.push(cur);
-  return out.map((s) => s.trim());
+
+  if (quoted) throw new ParseError('CSV has an unclosed quoted field.');
+  row.push(cell.trim());
+  if (row.some((value) => value.length > 0)) rows.push(row);
+  return rows;
 }
 
 export function parseCsv(text: string): { columns: string[]; rows: DatasetRow[] } {
-  const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
-  if (lines.length < 2) throw new ParseError('CSV needs a header row and at least one data row.');
-  const columns = parseCsvLine(lines[0]);
+  const parsed = parseCsvRows(text);
+  if (parsed.length < 2) throw new ParseError('CSV needs a header row and at least one data row.');
+  const columns = parsed[0];
   if (columns.length === 0 || columns.some((c) => !c))
     throw new ParseError('Header row has empty column names.');
-  const rows = lines.slice(1).map((l) => {
-    const cells = parseCsvLine(l);
+  const rows = parsed.slice(1).map((cells, i) => {
+    if (cells.length > columns.length)
+      throw new ParseError(`Row ${i + 2} has more cells than the header.`);
     const row: DatasetRow = {};
-    columns.forEach((c, i) => (row[c] = cells[i] ?? ''));
+    columns.forEach((c, j) => (row[c] = cells[j] ?? ''));
     return row;
   });
   return { columns, rows };
@@ -166,10 +177,10 @@ export function analyzeDataset(d: Dataset): DatasetHealth {
   const seen = new Set<string>();
   let dupes = 0;
   for (const r of d.rows) {
-    let key = '';
-    for (const c of d.columns) {
-      const v = (r[c] ?? '').trim();
-      key += `${c}\u001f${v}\u001f`;
+    const values = d.columns.map((c) => (r[c] ?? '').trim());
+    const key = JSON.stringify(values);
+    for (const [i, c] of d.columns.entries()) {
+      const v = values[i];
       const m = uniques.get(c)!;
       m.set(v, (m.get(v) ?? 0) + 1);
       sums.set(c, sums.get(c)! + v.length);
@@ -243,7 +254,7 @@ export function analyzeDataset(d: Dataset): DatasetHealth {
 export function dedupeDataset(d: Dataset): Dataset {
   const seen = new Set<string>();
   const rows = d.rows.filter((r) => {
-    const key = d.columns.map((c) => `${c}${(r[c] ?? '').trim()}`).join('');
+    const key = JSON.stringify(d.columns.map((c) => (r[c] ?? '').trim()));
     if (seen.has(key)) return false;
     seen.add(key);
     return true;

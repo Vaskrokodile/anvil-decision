@@ -14,6 +14,7 @@ export interface FtRequest {
   labels: Uint32Array;
   nClasses: number;
   lr: number;
+  batch?: number;
   epochs: number;
   mode: 'lora' | 'full';
   rank: number;
@@ -124,7 +125,7 @@ async function run(req: FtRequest, post: (m: FtMsg, t?: Transferable[]) => void)
 
   post({ type: 'tokenizing' });
   const tok = await AutoTokenizer.from_pretrained('Xenova/all-MiniLM-L6-v2');
-  const T = req.maxSeq;
+  const T = Math.max(1, Math.min(req.maxSeq, MINILM_L6.maxPos));
   const allIds: Uint32Array[] = [];
   const allMask: Float32Array[] = [];
   for (const text of req.texts) {
@@ -177,7 +178,7 @@ async function run(req: FtRequest, post: (m: FtMsg, t?: Transferable[]) => void)
     req.seed,
   );
   const order = trainIdx;
-  const BATCH = 8;
+  const BATCH = Math.max(1, Math.min(64, Math.floor(req.batch ?? 8)));
   const dz = new Float32Array(c);
   const logits = new Float32Array(c);
   let lastLoss = 0,
@@ -215,7 +216,7 @@ async function run(req: FtRequest, post: (m: FtMsg, t?: Transferable[]) => void)
         hg.set(dcls, 0);
         await enc.backward(hg);
       }
-      await enc.applyGrads(req.lr);
+      await enc.applyGrads(req.lr, rows.length);
       head.apply(req.lr, rows.length);
       seen += rows.length;
       post({

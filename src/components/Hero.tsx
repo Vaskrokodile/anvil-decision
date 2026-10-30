@@ -24,8 +24,8 @@ export default function Hero({ onStudio }: { onStudio: () => void }) {
   const specs: [string, string][] = [
     ['adapter', adapter],
     ['params', '74M — 1.24B'],
-    ['runtime', 'onnx · wgsl'],
-    ['data path', 'local only'],
+    ['runtime', 'webgpu · wasm'],
+    ['trainer', 'minilm · choice'],
   ];
 
   return (
@@ -37,9 +37,11 @@ export default function Hero({ onStudio }: { onStudio: () => void }) {
 
       {/* the prism — beam enters low-left, drags to aim */}
       {!reduce && (
-        <Suspense fallback={null}>
-          <VPrism className="absolute inset-x-0 top-[16%] bottom-0" />
-        </Suspense>
+        <div className="absolute inset-x-0 top-[16%] bottom-0">
+          <Suspense fallback={null}>
+            <VPrism />
+          </Suspense>
+        </div>
       )}
       <div
         className="dot-matrix pointer-events-none absolute inset-0"
@@ -54,7 +56,7 @@ export default function Hero({ onStudio }: { onStudio: () => void }) {
             transition={{ duration: 0.5 }}
             className="font-mono text-[11px] uppercase tracking-[0.28em] text-ice-dim"
           >
-            [ in-browser fine-tuning · webgpu ]
+            [ in-browser choice fine-tuning · webgpu / cpu ]
           </motion.p>
 
           <motion.h1
@@ -71,9 +73,9 @@ export default function Hero({ onStudio }: { onStudio: () => void }) {
             transition={{ duration: 0.6, delay: 0.16 }}
             className="mt-7 max-w-[52ch] text-[15px] leading-relaxed text-ice-dim sm:text-[16px]"
           >
-            Anvil probes your GPU, matches it to a roster of sub-1B specialist
-            models — decision heads, extractors, guardrails — and fine-tunes them
-            in the browser. Your data never leaves the machine.
+            Anvil probes your hardware, builds a local dataset, and fine-tunes a
+            MiniLM choice classifier in this browser. The roster is for inference
+            candidates; its checkpoints are not fine-tuned by the current trainer.
           </motion.p>
 
           <motion.div

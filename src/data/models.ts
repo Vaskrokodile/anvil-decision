@@ -19,8 +19,9 @@ export interface ModelEntry {
   arch: Arch;
   family: 'fastino' | 'community';
   sectors: Sector[];
-  /** Minimum hardware tier to consider training it locally (1..4) */
+  /** Minimum hardware tier for the rough local inference fit estimate (1..4) */
   minTier: 1 | 2 | 3 | 4;
+  /** Candidate training modes; the current trainer does not update roster weights. */
   trainMode: TrainMode[];
   /** Inference runtime available in-browser today */
   runtime: 'onnx-webgpu' | 'wgsl' | 'planned';
@@ -247,6 +248,6 @@ export const ARCH_LABELS: Record<Arch, string> = {
 
 export function fitsTier(m: ModelEntry, tier: number): 'fits' | 'marginal' | 'no' {
   if (tier >= m.minTier) return 'fits';
-  if (tier === m.minTier - 1 && m.trainMode.includes('lora')) return 'marginal';
+  if (tier === m.minTier - 1 && m.runtime !== 'planned') return 'marginal';
   return 'no';
 }

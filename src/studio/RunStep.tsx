@@ -18,6 +18,7 @@ import {
 import { getTrainedHead, setTrainedHead, headFromSafetensors, inferHead, type TrainedHead } from '../lib/trainedHead';
 import { getFtArtifact, setFtArtifact, ftFromSafetensors, inferFt, type FtArtifact } from '../lib/xformer/ft';
 import { readSafetensors } from '../lib/safetensors';
+import { getWorkspaceItem, setWorkspaceItem } from '../lib/workspace';
 import { loadDecide, type DecideSession } from '../lib/gliner2';
 
 /** Question packs per sector — the "typed decisions" contract in miniature. */
@@ -89,6 +90,18 @@ function Bar({ p }: { p: number }) {
       <div className="h-full rounded-full bg-ink" style={{ width: `${Math.round(p * 100)}%` }} />
     </div>
   );
+}
+
+function classifierAnswer(labels: string[], probabilities: Record<string, number>): Answer {
+  const choice = labels.reduce((best, label) =>
+    (probabilities[label] ?? 0) > (probabilities[best] ?? 0) ? label : best,
+  labels[0] ?? '');
+  return {
+    type: 'choice',
+    choice,
+    confidence: probabilities[choice] ?? 0,
+    probabilities,
+  };
 }
 
 function AnswerCard({ q, a }: { q: Question; a: Answer }) {
@@ -198,21 +211,61 @@ export default function RunStep({
   const [results, setResults] = useState<{ q: Question[]; a: Answer[]; ms: number } | null>(null);
   const [headResult, setHeadResult] = useState<{ probs: Record<string, number>; ms: number } | null>(null);
 
+  useEffect(() => {
+    let live = true;
+    Promise.all([getWorkspaceItem('trainedHead'), getWorkspaceItem('ftArtifact')])
+      .then(([savedHead, savedFt]) => {
+        if (!live) return;
+        if (savedHead && !getTrainedHead()) {
+          setTrainedHead(savedHead);
+          setHead(savedHead);
+          if (!savedFt) setEngine('head');
+        }
+        if (savedFt && !getFtArtifact()) {
+          setFtArtifact(savedFt);
+          setFt(savedFt);
+          setEngine('ft');
+        }
+      })
+      .catch(() => setError('Could not restore saved classifiers from this browser.'));
+    return () => {
+      live = false;
+    };
+  }, []);
+
   const loadHeadFile = async (f: File) => {
-    const { tensors, meta } = readSafetensors(await f.arrayBuffer());
-    if (meta.anvil === 'ft-v1' || Object.keys(tensors).some((k) => k.startsWith('lora.') || k.startsWith('full.'))) {
-      const a = ftFromSafetensors(tensors, meta);
-      setFtArtifact(a);
-      setFt(a);
-      setEngine('ft');
+    try {
+      const { tensors, meta } = readSafetensors(await f.arrayBuffer());
+      if (
+        meta.anvil === 'ft-v1' ||
+        Object.keys(tensors).some(
+          (k) =>
+            k.startsWith('lora.') ||
+            k.startsWith('encoder.layer.') ||
+            k.startsWith('embeddings.LayerNorm.'),
+        )
+      ) {
+        const a = ftFromSafetensors(tensors, meta);
+        setFtArtifact(a);
+        setFt(a);
+        setEngine('ft');
+        void setWorkspaceItem('ftArtifact', a).catch(() =>
+          setError('Loaded for this tab, but could not save the classifier locally.'),
+        );
+        setError(null);
+        return;
+      }
+      const h = headFromSafetensors(tensors, meta);
+      setTrainedHead(h);
+      setHead(h);
+      setEngine('head');
+      void setWorkspaceItem('trainedHead', h).catch(() =>
+        setError('Loaded for this tab, but could not save the classifier locally.'),
+      );
       setError(null);
-      return;
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not load that .safetensors file.');
     }
-    const h = headFromSafetensors(tensors, meta);
-    setTrainedHead(h);
-    setHead(h);
-    setEngine('head');
-    setError(null);
   };
 
   const runFt = async () => {
@@ -318,12 +371,13 @@ export default function RunStep({
 
   const loadPct = Math.round(progress * 100);
   const downloadMB = info ? Math.round(info.downloadSize / 1e6) : null;
+  const classifierLabels = engine === 'ft' ? ft?.labels ?? [] : head?.labels ?? [];
 
   return (
     <Step
       index="04"
       title="Run it on real text"
-      lede="A Jev-shaped decision model runs one forward pass in-browser — WebGPU when available, WASM otherwise. Answers are typed: always one of the options you gave."
+      lede="Run JEV decision checkpoints for typed answers, or use your trained MiniLM classifier for a JEV-shaped choice result. Classifier training currently supports one fixed label set, not multi-question score/noul tasks."
       onNext={onNext}
       nextLabel="Configure training"
     >
@@ -375,6 +429,7 @@ export default function RunStep({
             onChange={(e) => {
               const f = e.target.files?.[0];
               if (f) void loadHeadFile(f);
+              e.target.value = '';
             }}
           />
         </label>
@@ -578,23 +633,14 @@ export default function RunStep({
 
       {/* head result */}
       {headResult && (
-        <div className="mb-5 rounded-2xl border border-line bg-card p-5">
+        <div className="mb-5">
           <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-faint">
-            trained head · {headResult.ms.toFixed(0)} ms
+            trained classifier · {headResult.ms.toFixed(0)} ms · choice output
           </p>
-          <div className="flex flex-col gap-2.5">
-            {Object.entries(headResult.probs)
-              .sort((x, y) => y[1] - x[1])
-              .map(([label, p]) => (
-                <div key={label} className="grid grid-cols-[10rem_1fr_3.5rem] items-center gap-3">
-                  <span className="truncate text-[13px] text-fg">{label}</span>
-                  <Bar p={p} />
-                  <span className="text-right font-mono text-[11px] text-dim">
-                    {(p * 100).toFixed(0)}%
-                  </span>
-                </div>
-              ))}
-          </div>
+          <AnswerCard
+            q={{ type: 'choice', instructions: 'Select the most likely training label.', options: classifierLabels }}
+            a={classifierAnswer(classifierLabels, headResult.probs)}
+          />
         </div>
       )}
 

@@ -56,7 +56,12 @@ export default function App() {
   useEffect(() => {
     const onHash = () => {
       setRoute(routeFromHash());
-      window.scrollTo({ top: 0 });
+      // scroll to top only for route hashes — let #roster/#sectors/#pipeline
+      // land on their landing-section anchors natively
+      const h = location.hash;
+      if (h === '' || h === '#' || h.startsWith('#/')) {
+        window.scrollTo({ top: 0 });
+      }
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);

@@ -111,7 +111,7 @@ export interface EncoderBackend {
    */
   backward(hiddenGrad: Float32Array): Promise<void>;
   /** AdamW step on all trainable params using accumulated grads; zeroes grads. */
-  applyGrads(lr: number): Promise<void>;
+  applyGrads(lr: number, batchSize?: number): Promise<void>;
   /** Snapshot the trainable tensors (LoRA A/B pairs, or all weights in full). */
   trainableWeights(): Promise<Record<string, Float32Array>>;
   dispose?(): void;

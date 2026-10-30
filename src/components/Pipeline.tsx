@@ -12,22 +12,22 @@ const STEPS = [
   {
     n: '02',
     title: 'Select',
-    body: 'The roster is gated by your tier. Models you can’t train are marked, not hidden — the honest ceiling is part of the product.',
-    detail: 'params ≤ 1.24B · LoRA / head / full',
+    body: 'The roster provides hardware-fit estimates and inference candidates. It does not select the weights used by the current trainer.',
+    detail: 'GLiNER2 Decide driver · JEV runtimes',
     live: true,
   },
   {
     n: '03',
     title: 'Build',
-    body: 'Sector templates give you the schema; import JSONL, CSV or text and it never leaves the tab. Datasets persist to OPFS.',
-    detail: '.jsonl · .csv · .txt → OPFS',
+    body: 'Edit a sector template, import JSONL, CSV or text, or load a public Hugging Face dataset. Draft datasets are saved in this browser’s local database.',
+    detail: '.jsonl · .csv · .txt · local IndexedDB',
     live: true,
   },
   {
     n: '04',
     title: 'Train',
-    body: 'Engine v1 trains a linear head over frozen MiniLM embeddings — WGSL compute in a Worker, CPU fallback, exports .safetensors. LoRA on the encoder is next.',
-    detail: 'wgsl/CPU head · adamw · .safetensors',
+    body: 'Train a choice head or fine-tune MiniLM-L6 with LoRA/full mode. These runs update MiniLM, not the selected roster checkpoint; validation uses held-out rows.',
+    detail: 'CPU / WGSL · choice artifacts · .safetensors',
     live: true,
   },
 ];
@@ -38,8 +38,8 @@ export default function Pipeline() {
       <div className="mx-auto max-w-[1340px] px-6">
         <SectionHeader
           index="04 — pipeline"
-          title="Four steps, no servers"
-          lede="What’s live today vs. what ships next is printed on the tin. Probe, select and dataset-building work now; the WGSL training engine is the build in progress."
+          title="Local training, clear limits"
+          lede="Probe hardware, choose an inference candidate, build a reusable local dataset, then train and evaluate a MiniLM choice classifier in the browser."
         />
 
         <ol className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">

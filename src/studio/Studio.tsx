@@ -1,10 +1,13 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Check, Circle } from '@phosphor-icons/react';
 import { useGpuReport } from '../lib/useGpu';
 import { MODELS } from '../data/models';
 import type { Dataset } from '../lib/dataset';
 import type { TrainMode } from '../data/models';
+import { getWorkspaceItem, setWorkspaceItem } from '../lib/workspace';
+import { setTrainedHead } from '../lib/trainedHead';
+import { setFtArtifact } from '../lib/xformer/ft';
 import ProbeStep from './ProbeStep';
 import ModelStep from './ModelStep';
 import DatasetStep from './DatasetStep';
@@ -26,16 +29,50 @@ export default function Studio() {
   const [step, setStep] = useState(0);
   const [modelId, setModelId] = useState<string | null>(null);
   const [dataset, setDataset] = useState<Dataset | null>(null);
+  const [datasetRestored, setDatasetRestored] = useState(false);
+  const [storageError, setStorageError] = useState<string | null>(null);
   const [ranOnce, setRanOnce] = useState(false);
   const [config, setConfig] = useState<TrainConfig>({
     mode: 'lora',
     lr: 1e-4,
     epochs: 3,
     batch: 8,
-    seqLen: 512,
+    seqLen: 128,
   });
 
   const model = useMemo(() => MODELS.find((m) => m.hf === modelId) ?? null, [modelId]);
+
+  useEffect(() => {
+    let live = true;
+    Promise.all([
+      getWorkspaceItem('dataset'),
+      getWorkspaceItem('trainedHead'),
+      getWorkspaceItem('ftArtifact'),
+    ])
+      .then(([savedDataset, savedHead, savedFt]) => {
+        if (!live) return;
+        setDataset(savedDataset);
+        setTrainedHead(savedHead);
+        setFtArtifact(savedFt);
+      })
+      .catch(() => {
+        if (live) setStorageError('Local browser storage is unavailable; export important work to keep it.');
+      })
+      .finally(() => live && setDatasetRestored(true));
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!datasetRestored) return;
+    const timer = window.setTimeout(() => {
+      void setWorkspaceItem('dataset', dataset).catch(() =>
+        setStorageError('Could not save the dataset locally. Export it before leaving this tab.'),
+      );
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [dataset, datasetRestored]);
 
   const done = [
     report?.ok === true,
@@ -78,14 +115,19 @@ export default function Studio() {
         })}
         <div className="px-4 py-3">
           <p className="font-mono text-[10px] leading-relaxed text-faint">
-            Everything runs client-side. Closing the tab keeps cached weights; datasets stay in
-            OPFS.
+            Training stays in this browser. Draft datasets and saved classifiers are stored locally;
+            export files for a portable copy.
           </p>
         </div>
       </aside>
 
       {/* active panel */}
       <main className="min-w-0 flex-1 rounded-2xl border border-line bg-card md:ml-3">
+        {storageError && (
+          <p role="alert" className="mx-6 mt-6 rounded-xl border border-dashed border-fg/40 bg-paper px-4 py-3 font-mono text-[11px] text-fg sm:mx-8">
+            {storageError}
+          </p>
+        )}
         <AnimatePresence mode="wait">
           <motion.div
             key={step}
@@ -125,6 +167,9 @@ export default function Studio() {
                 dataset={dataset}
                 config={config}
                 onConfig={setConfig}
+                onDataset={setDataset}
+                onModel={setModelId}
+                onStorageError={setStorageError}
                 onTrained={() => setStep(3)}
               />
             )}

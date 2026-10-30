@@ -1,5 +1,8 @@
 import { AutoTokenizer, type PreTrainedTokenizer } from '@huggingface/transformers';
-import type { EncoderBackend, EncoderInit, TunerMode } from './spec';
+import type { EncoderBackend, EncoderInit } from './spec';
+import type { FtArtifact } from './ftArtifact';
+export { ftFromSafetensors } from './ftArtifact';
+export type { FtArtifact } from './ftArtifact';
 import { MINILM_L6 } from './spec';
 import { loadMiniLMWeights } from './weights';
 import { CpuEncoder } from './cpu';
@@ -10,25 +13,6 @@ import { WgslEncoder } from './wgsl';
  * The inference path runs OUR encoder backend (not onnx) so the tuned params
  * actually apply.
  */
-export interface FtArtifact {
-  params: Record<string, Float32Array>; // lora.<i>.<proj>.a/.b or full weight names
-  headW: Float32Array; // [d, c]
-  headB: Float32Array; // [c]
-  labels: string[];
-  mode: TunerMode;
-  rank: number;
-  backend: 'cpu' | 'wgsl';
-  loss: number;
-  acc: number;
-  /** held-out accuracy at end of training — undefined for older artifacts */
-  valAcc?: number;
-  valN?: number;
-  trainN?: number;
-  rows: number;
-  maxSeq: number;
-  trainedAt: string;
-}
-
 const ENCODER_ID = 'sentence-transformers/all-MiniLM-L6-v2';
 
 let session: { enc: EncoderBackend; tok: PreTrainedTokenizer; artifact: FtArtifact } | null = null;
@@ -41,36 +25,6 @@ export function setFtArtifact(a: FtArtifact | null) {
 }
 export function getFtArtifact() {
   return store;
-}
-
-export function ftFromSafetensors(
-  tensors: Record<string, { shape: number[]; data: Float32Array | BigInt64Array }>,
-  meta: Record<string, string>,
-): FtArtifact {
-  const headW = tensors['head.weight'];
-  const headB = tensors['head.bias'];
-  if (!headW || !headB) throw new Error('safetensors missing head tensors');
-  const params: Record<string, Float32Array> = {};
-  for (const [k, v] of Object.entries(tensors)) {
-    if (k.startsWith('lora.') || k.startsWith('full.')) params[k] = v.data as Float32Array;
-  }
-  return {
-    params,
-    headW: headW.data as Float32Array,
-    headB: headB.data as Float32Array,
-    labels: (meta.labels ?? '').split('\n').filter(Boolean),
-    mode: (meta.mode as TunerMode) ?? 'lora',
-    rank: Number(meta.rank ?? 8),
-    backend: 'cpu',
-    loss: Number(meta.loss ?? 0),
-    acc: Number(meta.acc ?? 0),
-    valAcc: meta.valAcc != null ? Number(meta.valAcc) : undefined,
-    valN: meta.valN != null ? Number(meta.valN) : undefined,
-    trainN: meta.trainN != null ? Number(meta.trainN) : undefined,
-    rows: Number(meta.rows ?? 0),
-    maxSeq: Number(meta.maxSeq ?? 128),
-    trainedAt: meta.trainedAt ?? '',
-  };
 }
 
 async function ensureSession(

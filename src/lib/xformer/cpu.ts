@@ -742,7 +742,8 @@ export class CpuEncoder implements EncoderBackend {
     this.cache = null; // release the activation cache
   }
 
-  async applyGrads(lr: number): Promise<void> {
+  async applyGrads(lr: number, batchSize = 1): Promise<void> {
+    const gradScale = 1 / Math.max(1, batchSize);
     const b1 = 0.9;
     const b2 = 0.999;
     const eps = 1e-8;
@@ -754,7 +755,7 @@ export class CpuEncoder implements EncoderBackend {
       const { data, grad, m, v, decay } = p;
       const w = decay ? wd : 0;
       for (let i = 0; i < data.length; i++) {
-        const gi = grad[i];
+        const gi = grad[i] * gradScale;
         m[i] = b1 * m[i] + (1 - b1) * gi;
         v[i] = b2 * v[i] + (1 - b2) * gi * gi;
         const mh = m[i] / bc1;

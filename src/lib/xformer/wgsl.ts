@@ -877,7 +877,7 @@ fn zero(@builtin(global_invocation_id) g: vec3<u32>) {
     if (!p) {
       const mod = this.dev.createShaderModule({
         code: /* wgsl */ `
-struct AdamP { lr: f32, bc1: f32, bc2: f32, wd: f32, b1: f32, b2: f32, eps: f32, pad: f32 };
+struct AdamP { lr: f32, bc1: f32, bc2: f32, wd: f32, b1: f32, b2: f32, eps: f32, gradScale: f32 };
 @group(0) @binding(0) var<uniform> ap: AdamP;
 @group(0) @binding(1) var<storage, read> G: array<f32>;
 @group(0) @binding(2) var<storage, read_write> P: array<f32>;
@@ -888,7 +888,7 @@ const LEN: u32 = ${len}u;
 fn adam(@builtin(global_invocation_id) g: vec3<u32>) {
   let i = g.x;
   if (i >= LEN) { return; }
-  var gr = G[i];
+  var gr = G[i] * ap.gradScale;
   if (ap.wd != 0.0) { gr += ap.wd * P[i]; }
   let m = ap.b1 * M[i] + (1.0 - ap.b1) * gr;
   let v = ap.b2 * V[i] + (1.0 - ap.b2) * gr * gr;
@@ -1194,14 +1194,15 @@ fn adam(@builtin(global_invocation_id) g: vec3<u32>) {
     });
   }
 
-  applyGrads(lr: number): Promise<void> {
+  applyGrads(lr: number, batchSize = 1): Promise<void> {
     return this.run(async () => {
       const t = ++this.t;
+      const gradScale = 1 / Math.max(1, batchSize);
       const bc1 = 1 - Math.pow(0.9, t);
       const bc2 = 1 - Math.pow(0.999, t);
       const q = this.dev.queue;
-      q.writeBuffer(this.uAdamW, 0, new Float32Array([lr, bc1, bc2, 0.01, 0.9, 0.999, 1e-8, 0]));
-      q.writeBuffer(this.uAdamZ, 0, new Float32Array([lr, bc1, bc2, 0.0, 0.9, 0.999, 1e-8, 0]));
+      q.writeBuffer(this.uAdamW, 0, new Float32Array([lr, bc1, bc2, 0.01, 0.9, 0.999, 1e-8, gradScale]));
+      q.writeBuffer(this.uAdamZ, 0, new Float32Array([lr, bc1, bc2, 0.0, 0.9, 0.999, 1e-8, gradScale]));
 
       const enc = this.dev.createCommandEncoder();
       const pass = enc.beginComputePass();

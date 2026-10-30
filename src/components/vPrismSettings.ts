@@ -20,7 +20,7 @@ export const DARK_PRESET: SceneSettings = {
   roughness: 0,
   ior: 1.5,
   thickness: 0.9,
-  background: '#05070f',
+  background: '#060607',
   prismTint: '#ffffff',
 };
 
