@@ -23,16 +23,16 @@ import {
   type XformerSpec,
 } from './spec.ts';
 
-type F = Float32Array;
+export type F = Float32Array;
 
 /** masked-out logits get this bias — exp() underflows to exactly 0 */
-const MASK_BIAS = -1e9;
+export const MASK_BIAS = -1e9;
 
 /* ------------------------------------------------------------------ */
 /* small numeric helpers                                               */
 
 /** mulberry32 — same seeded RNG as head.ts so LoRA init is reproducible. */
-function mulberry(seed: number) {
+export function mulberry(seed: number) {
   let s = seed >>> 0;
   return () => {
     s |= 0;
@@ -62,17 +62,17 @@ const SQRT2 = Math.SQRT2;
 const INV_SQRT_2PI = 1 / Math.sqrt(2 * Math.PI);
 
 /** exact-erf GELU: g(x) = x·Φ(x) = 0.5·x·(1 + erf(x/√2)) */
-function gelu(x: number): number {
+export function gelu(x: number): number {
   return 0.5 * x * (1 + erf(x / SQRT2));
 }
 
 /** g'(x) = Φ(x) + x·φ(x), φ = standard normal pdf */
-function geluGrad(x: number): number {
+export function geluGrad(x: number): number {
   return 0.5 * (1 + erf(x / SQRT2)) + x * INV_SQRT_2PI * Math.exp(-0.5 * x * x);
 }
 
 /** y[t,o] = Σ_k x[t,k]·w[o,k] + b[o]  — HF layout w [out,in]. */
-function linear(x: F, w: F, b: F, T: number, iD: number, oD: number): F {
+export function linear(x: F, w: F, b: F, T: number, iD: number, oD: number): F {
   const y = new Float32Array(T * oD);
   for (let t = 0; t < T; t++) {
     const xo = t * iD;
@@ -88,7 +88,7 @@ function linear(x: F, w: F, b: F, T: number, iD: number, oD: number): F {
 }
 
 /** lh[t,j] = Σ_k x[t,k]·a[k,j] — LoRA bottleneck activations, a is [in,r]. */
-function loraHidden(x: F, a: F, T: number, iD: number, r: number): F {
+export function loraHidden(x: F, a: F, T: number, iD: number, r: number): F {
   const lh = new Float32Array(T * r);
   for (let t = 0; t < T; t++) {
     const xo = t * iD;
@@ -103,7 +103,7 @@ function loraHidden(x: F, a: F, T: number, iD: number, r: number): F {
 }
 
 /** y[t,o] += s·Σ_j lh[t,j]·b[j,o] — LoRA output side, b is [r,out]. */
-function loraApply(y: F, lh: F, b: F, T: number, r: number, oD: number, s: number): void {
+export function loraApply(y: F, lh: F, b: F, T: number, r: number, oD: number, s: number): void {
   for (let t = 0; t < T; t++) {
     const ho = t * r;
     const yo = t * oD;
@@ -115,13 +115,13 @@ function loraApply(y: F, lh: F, b: F, T: number, r: number, oD: number, s: numbe
   }
 }
 
-interface LnCache {
+export interface LnCache {
   xhat: F;
   rstd: F;
 }
 
 /** Row LayerNorm. Returns y plus the xhat/rstd the backward pass needs. */
-function lnFwd(x: F, w: F, b: F, T: number, d: number, eps: number): { y: F } & LnCache {
+export function lnFwd(x: F, w: F, b: F, T: number, d: number, eps: number): { y: F } & LnCache {
   const y = new Float32Array(T * d);
   const xhat = new Float32Array(T * d);
   const rstd = new Float32Array(T);
@@ -152,7 +152,7 @@ function lnFwd(x: F, w: F, b: F, T: number, d: number, eps: number): { y: F } & 
  *   dx = rstd·(g − mean(g) − xhat·mean(g·xhat)),   g = dy∘w
  * Accumulates dw/db rowsums when gw/gb are provided (full mode).
  */
-function lnBwd(
+export function lnBwd(
   dy: F,
   xhat: F,
   rstd: F,
@@ -184,7 +184,7 @@ function lnBwd(
   return dx;
 }
 
-interface LoraGrads {
+export interface LoraGrads {
   a: F;
   b: F;
   ga: F;
@@ -205,7 +205,7 @@ interface LoraGrads {
  * The frozen base w still contributes to dx — it is in the compute graph
  * even when it takes no grads.
  */
-function linBwd(
+export function linBwd(
   dy: F,
   x: F,
   T: number,
@@ -410,7 +410,7 @@ function attendBwd(
 /* ------------------------------------------------------------------ */
 /* parameter / cache bookkeeping                                       */
 
-interface Param {
+export interface Param {
   data: F;
   grad: F;
   m: F;
@@ -419,7 +419,7 @@ interface Param {
   decay: boolean;
 }
 
-interface LoraProj {
+export interface LoraProj {
   a: Param; // [in, r]
   b: Param; // [r, out]
 }

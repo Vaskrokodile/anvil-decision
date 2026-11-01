@@ -14,20 +14,22 @@ forward pass → calibrated answers).
 |---|---|
 | Hardware probe | WebGPU adapter → tier → which models fit |
 | Typed-decision inference | GLiNER2.5-Decide (custom `gliner2` ONNX driver) + open-jev family (`kev-0.6b`, `open-jev`, `kev-4b`), WebGPU or WASM |
+| Decoder-LM inference | transformers.js text-generation for decoder roster entries (e.g. SmolLM2) — labeled generation, device/dtype shown |
 | Dataset builder | `.jsonl` / `.csv` / `.json` / `.txt` import, sector templates, column mapping — plus bundled starter sets and Hugging Face import (public datasets → rows in-tab), health stats (dupes, class balance, label detection), dedupe |
 | **Training engine v1** | Linear head over frozen MiniLM-L6 embeddings — WGSL compute or CPU, real loss/accuracy, exports `.safetensors` |
-| **Training engine v2** | Our own BERT encoder forward **and backward** (attention, LayerNorm, GELU, LoRA, AdamW) implemented in WGSL — LoRA and full fine-tune of MiniLM-L6 in a Worker |
-| Held-out eval | Seeded stratified 80/20 train/val split in both engines; reported `val` accuracy is on rows the model never trained on |
-| Artifacts | `.safetensors` export + reload; trained heads/adapters run in the Run step |
+| **Training engine v2** | Our own BERT encoder forward **and backward** (attention, LayerNorm, GELU, LoRA, AdamW) implemented in WGSL — LoRA and full fine-tune of MiniLM-L6 in a Worker. WGSL output is parity-checked against the CPU reference on-device before training/inference proceeds; failure → automatic CPU fallback |
+| **DeBERTa-v3-small substrate** | Second fine-tune substrate: real DeBERTa-v3 disentangled attention (qk + c2p + p2c, shared pos projections) fwd+bwd, CPU — verified to bit-level logits parity vs the reference ONNX model. ~570 MB weight download |
+| **Multi-task training** | Pick several label columns → one shared encoder + one head per task; shared gradients flow through the encoder |
+| Held-out eval | Seeded stratified 80/20 train/val split; `val` accuracy is on rows the model never trained on. Optional eval report compares the trained artifact against the selected roster baseline on held-out rows — accuracy, macro-F1, per-class P/R/F1, confusion matrix, latency, agreement |
+| Artifacts | One portable `.zip` per run: `weights/*.safetensors` (adapter or full params + heads), `model.card.json`, `weights/predict.mjs` runnable inference snippet |
 
 ## What's not
 
-- LoRA/full fine-tune on models *other* than MiniLM-L6 (roster models are
-  probe/fit metadata for now).
+- LoRA/full fine-tune on roster models themselves — the roster pick is the
+  inference/eval baseline and question pack; the fine-tune substrate is
+  MiniLM-L6 or DeBERTa-v3-small.
+- DeBERTa substrate is CPU-only (no WGSL disentangled-attention backend yet).
 - OPFS checkpoint persistence (in-session only).
-- The WGSL backend is verified structurally; numerical parity vs the CPU
-  reference is proven on CPU — GPU-path bugs would surface as a training
-  failure, and the worker auto-falls back to CPU.
 
 ## Quickstart
 
@@ -41,10 +43,15 @@ Studio flow: `#/studio` → **probe → model → dataset → run → configure/
 Verification scripts (Node ≥22, strips TS types):
 
 ```sh
-node scripts/parity.mts     # encoder forward == transformers.js MiniLM (cos 1.0)
-node scripts/ft-smoke.mts   # CPU LoRA fine-tune: loss 0.93 → 0.009, acc → 1.0
-node scripts/xformer-smoke.mts  # finite-difference grad check
-node scripts/fetch-starter.mts  # regenerate public/datasets/* from HF
+npm test                       # parsers, artifacts, zip, bench + encoder grad checks
+npm run test:weights           # real-weight parity vs HF (MiniLM + DeBERTa, big downloads)
+npm run test:e2e               # Playwright studio-flow smoke (needs browsers installed)
+node scripts/parity.mts        # encoder forward == transformers.js MiniLM (cos 1.0)
+node scripts/parity-deberta.mts  # deberta encoder → NLI logits == reference ONNX
+node scripts/ft-smoke.mts      # CPU LoRA fine-tune: loss 0.93 → 0.009, acc → 1.0
+node scripts/xformer-smoke.mts # finite-difference grad check (minilm)
+node scripts/deberta-smoke.mts # finite-difference grad check (deberta)
+node scripts/fetch-starter.mts # regenerate public/datasets/* from HF
 ```
 
 ## Stack

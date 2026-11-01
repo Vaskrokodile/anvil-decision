@@ -29,6 +29,33 @@ export const MINILM_L6: XformerSpec = {
   lnEps: 1e-12,
 };
 
+/** DeBERTa adds a disentangled relative-position attention spec. */
+export interface DebertaSpec extends XformerSpec {
+  /** att_span = position_buckets; rel-emb table is [2·posSpan, d] */
+  posSpan: number;
+  /** 1 + number of active pos-att terms (qk|c2p|p2c → 3) */
+  scaleFactor: number;
+}
+
+/**
+ * DeBERTa-v3-small (microsoft/deberta-v3-small): 6 layers, d=768, 12 heads × 64,
+ * FFN 3072, XLM-RoBERTa vocab 128100, pos_att_type p2c|c2p, share_att_key
+ * (pos projections reuse the layer's query/key weights), norm_rel_ebd
+ * layer_norm on the rel_embeddings table.
+ */
+export const DEBERTA_V3_SMALL: DebertaSpec = {
+  layers: 6,
+  dModel: 768,
+  heads: 12,
+  dHead: 64,
+  dFfn: 3072,
+  vocab: 128100,
+  maxPos: 512,
+  lnEps: 1e-7,
+  posSpan: 256,
+  scaleFactor: 3,
+};
+
 /** flat name → F32 data, straight out of model.safetensors */
 export type Weights = Record<string, Float32Array>;
 
@@ -53,6 +80,34 @@ export const W = {
     f1W: `encoder.layer.${i}.intermediate.dense.weight`, // [ffn, d]
     f1B: `encoder.layer.${i}.intermediate.dense.bias`,
     f2W: `encoder.layer.${i}.output.dense.weight`, // [d, ffn]
+    f2B: `encoder.layer.${i}.output.dense.bias`,
+    ln2W: `encoder.layer.${i}.output.LayerNorm.weight`,
+    ln2B: `encoder.layer.${i}.output.LayerNorm.bias`,
+  }),
+};
+
+/** Canonical DeBERTa-v3 safetensors keys (deberta. prefix stripped). */
+export const DW = {
+  word: 'embeddings.word_embeddings.weight', // [vocab, d]
+  embLnW: 'embeddings.LayerNorm.weight',
+  embLnB: 'embeddings.LayerNorm.bias',
+  relEmb: 'encoder.rel_embeddings.weight', // [2·posSpan, d]
+  relLnW: 'encoder.LayerNorm.weight',
+  relLnB: 'encoder.LayerNorm.bias',
+  layer: (i: number) => ({
+    qW: `encoder.layer.${i}.attention.self.query_proj.weight`,
+    qB: `encoder.layer.${i}.attention.self.query_proj.bias`,
+    kW: `encoder.layer.${i}.attention.self.key_proj.weight`,
+    kB: `encoder.layer.${i}.attention.self.key_proj.bias`,
+    vW: `encoder.layer.${i}.attention.self.value_proj.weight`,
+    vB: `encoder.layer.${i}.attention.self.value_proj.bias`,
+    oW: `encoder.layer.${i}.attention.output.dense.weight`,
+    oB: `encoder.layer.${i}.attention.output.dense.bias`,
+    ln1W: `encoder.layer.${i}.attention.output.LayerNorm.weight`,
+    ln1B: `encoder.layer.${i}.attention.output.LayerNorm.bias`,
+    f1W: `encoder.layer.${i}.intermediate.dense.weight`,
+    f1B: `encoder.layer.${i}.intermediate.dense.bias`,
+    f2W: `encoder.layer.${i}.output.dense.weight`,
     f2B: `encoder.layer.${i}.output.dense.bias`,
     ln2W: `encoder.layer.${i}.output.LayerNorm.weight`,
     ln2B: `encoder.layer.${i}.output.LayerNorm.bias`,

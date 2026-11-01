@@ -1,10 +1,24 @@
 import type { TunerMode } from './spec.ts';
 
+/** One named classification task — a dataset label column → its own head. */
+export interface FtTask {
+  name: string;
+  labels: string[];
+  headW: Float32Array;
+  headB: Float32Array;
+  valAcc?: number;
+  valN?: number;
+}
+
 export interface FtArtifact {
   params: Record<string, Float32Array>;
   headW: Float32Array;
   headB: Float32Array;
   labels: string[];
+  /** Multi-task artifacts: per-task heads. headW/headB/labels mirror task 0. */
+  tasks?: FtTask[];
+  /** encoder substrate — absent on pre-deberta artifacts */
+  arch?: 'minilm' | 'deberta';
   mode: TunerMode;
   rank: number;
   backend: 'cpu' | 'wgsl';
@@ -22,8 +36,24 @@ export function ftFromSafetensors(
   tensors: Record<string, { shape: number[]; data: Float32Array | BigInt64Array }>,
   meta: Record<string, string>,
 ): FtArtifact {
-  const headW = tensors['head.weight'];
-  const headB = tensors['head.bias'];
+  let tasks: FtTask[] | undefined;
+  if (meta.tasks) {
+    // multi-task export: head.<i>.weight/bias + a JSON task table in meta
+    const table = JSON.parse(meta.tasks) as { name: string; labels: string[] }[];
+    tasks = table.map((t, i) => {
+      const w = tensors[`head.${i}.weight`];
+      const b = tensors[`head.${i}.bias`];
+      if (!w || !b) throw new Error(`safetensors missing head.${i} tensors for task "${t.name}"`);
+      return {
+        name: t.name,
+        labels: t.labels,
+        headW: w.data as Float32Array,
+        headB: b.data as Float32Array,
+      };
+    });
+  }
+  const headW = tasks ? { data: tasks[0].headW } : tensors['head.weight'];
+  const headB = tasks ? { data: tasks[0].headB } : tensors['head.bias'];
   if (!headW || !headB) throw new Error('safetensors missing head tensors');
   const isEncoderKey = (k: string) =>
     k.startsWith('encoder.layer.') || k.startsWith('embeddings.LayerNorm.');
@@ -49,7 +79,9 @@ export function ftFromSafetensors(
     params,
     headW: headW.data as Float32Array,
     headB: headB.data as Float32Array,
-    labels: (meta.labels ?? '').split('\n').filter(Boolean),
+    labels: tasks ? tasks[0].labels : (meta.labels ?? '').split('\n').filter(Boolean),
+    tasks,
+    arch: meta.arch === 'deberta' ? 'deberta' : undefined,
     mode,
     rank: Number(meta.rank ?? 8),
     backend: 'cpu',

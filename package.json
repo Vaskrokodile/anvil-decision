@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "test": "node scripts/test-core.mts",
+    "test": "node scripts/test-core.mts && node scripts/test-ft-artifact.mts && node scripts/test-zip.mts && node scripts/test-bench.mts && node scripts/test-bench-runner.mts && node scripts/xformer-smoke.mts && node scripts/deberta-smoke.mts",
+    "test:weights": "node scripts/parity.mts && node scripts/parity-deberta.mts && node scripts/ft-smoke.mts",
+    "test:e2e": "playwright test",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -27,6 +29,7 @@
     "three": "^0.186.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",

@@ -16,10 +16,12 @@ import {
   type Question,
 } from '../lib/jev';
 import { getTrainedHead, setTrainedHead, headFromSafetensors, inferHead, type TrainedHead } from '../lib/trainedHead';
-import { getFtArtifact, setFtArtifact, ftFromSafetensors, inferFt, type FtArtifact } from '../lib/xformer/ft';
+import { getFtArtifact, setFtArtifact, ftFromSafetensors, inferFtTasks, type FtArtifact, type FtTaskResult } from '../lib/xformer/ft';
 import { readSafetensors } from '../lib/safetensors';
 import { getWorkspaceItem, setWorkspaceItem } from '../lib/workspace';
 import { loadDecide, type DecideSession } from '../lib/gliner2';
+import { loadDecoder, type DecoderSession } from '../lib/decoder';
+import { releaseSessions } from '../lib/sessions';
 
 /** Question packs per sector — the "typed decisions" contract in miniature. */
 const PACKS: Record<string, { label: string; questions: Question[] }> = {
@@ -181,16 +183,22 @@ export default function RunStep({
   onNext: () => void;
   onRan?: () => void;
 }) {
+  const lmRepo =
+    model?.arch === 'decoder-lm' && model.runtime !== 'planned' ? (model.onnx ?? model.hf) : null;
   const [head, setHead] = useState<TrainedHead | null>(() => getTrainedHead());
   const [ft, setFt] = useState<FtArtifact | null>(() => getFtArtifact());
-  const [engine, setEngine] = useState<'jev' | 'head' | 'ft'>(ft ? 'ft' : head ? 'head' : 'jev');
+  const [engine, setEngine] = useState<'jev' | 'head' | 'ft' | 'lm'>(
+    ft ? 'ft' : head ? 'head' : lmRepo ? 'lm' : 'jev',
+  );
   const [fallbackRepo, setFallbackRepo] = useState(RUNNABLE[0].id);
   const repo = isJevRunnable(model?.onnx) ? (model?.onnx as string) : fallbackRepo;
 
   const [info, setInfo] = useState<OpenJevInfo | null>(null);
   const [runtime, setRuntime] = useState<OpenJevRuntime | null>(null);
   const decideRef = useRef<DecideSession | null>(null);
+  const decoderRef = useRef<DecoderSession | null>(null);
   const [decideRt, setDecideRt] = useState<{ device: string; dtype: string } | null>(null);
+  const [decoderRt, setDecoderRt] = useState<{ device: string; dtype: string } | null>(null);
   const [phase, setPhase] = useState<'idle' | 'loading' | 'ready' | 'deciding'>('idle');
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -210,6 +218,7 @@ export default function RunStep({
   const [customNoul, setCustomNoul] = useState('');
   const [results, setResults] = useState<{ q: Question[]; a: Answer[]; ms: number } | null>(null);
   const [headResult, setHeadResult] = useState<{ probs: Record<string, number>; ms: number } | null>(null);
+  const [taskResults, setTaskResults] = useState<{ tasks: FtTaskResult[]; ms: number } | null>(null);
 
   useEffect(() => {
     let live = true;
@@ -268,15 +277,29 @@ export default function RunStep({
     }
   };
 
+  /** Free JEV/Decide/decoder sessions when the user moves to a classifier engine. */
+  const releaseHeavy = async () => {
+    await releaseSessions('none');
+    decideRef.current = null;
+    decoderRef.current = null;
+    setRuntime(null);
+    setDecideRt(null);
+    setDecoderRt(null);
+  };
+
   const runFt = async () => {
     if (!ft) return;
     setPhase('deciding');
     setError(null);
     setHeadResult(null);
+    setTaskResults(null);
     try {
       const t0 = performance.now();
-      const probs = await inferFt(state, ft, { preferWgsl: true });
-      setHeadResult({ probs, ms: performance.now() - t0 });
+      const [tasks] = await Promise.all([
+        inferFtTasks(state, ft, { preferWgsl: true }),
+        releaseHeavy(),
+      ]);
+      setTaskResults({ tasks, ms: performance.now() - t0 });
       setPhase('ready');
       onRan?.();
     } catch (e) {
@@ -292,7 +315,7 @@ export default function RunStep({
     setHeadResult(null);
     try {
       const t0 = performance.now();
-      const probs = await inferHead(state, head);
+      const [probs] = await Promise.all([inferHead(state, head), releaseHeavy()]);
       setHeadResult({ probs, ms: performance.now() - t0 });
       setPhase('ready');
       onRan?.();
@@ -337,11 +360,25 @@ export default function RunStep({
     setProgress(0);
     setError(null);
     try {
-      if (decideMode) {
+      if (engine === 'lm') {
+        if (!lmRepo) throw new Error('Pick a decoder-LM roster entry to use the generation engine.');
+        await releaseSessions('decoder');
+        const s = await loadDecoder(lmRepo, { onProgress: (p) => setProgress(p.progress) });
+        decoderRef.current = s;
+        setDecoderRt({ device: s.device, dtype: s.dtype });
+      } else if (decideMode) {
+        await releaseSessions('decide');
+        decoderRef.current = null;
+        setDecoderRt(null);
         const s = await loadDecide(repo, { onProgress: (p) => setProgress(p.progress) });
         decideRef.current = s;
         setDecideRt({ device: s.device, dtype: s.dtype });
       } else {
+        await releaseSessions('jev');
+        decoderRef.current = null;
+        setDecoderRt(null);
+        decideRef.current = null;
+        setDecideRt(null);
         const j = await loadJev(repo, (p) => setProgress(p.progress));
         setRuntime(j.runtime);
       }
@@ -357,10 +394,17 @@ export default function RunStep({
     setError(null);
     try {
       const t0 = performance.now();
-      const answers = decideMode
-        ? await (decideRef.current ?? (await loadDecide(repo))).decide(state, questions)
-        : await (await loadJev(repo)).decide(state, questions);
-      setResults({ q: questions, a: answers as Answer[], ms: performance.now() - t0 });
+      let answers: Answer[];
+      if (engine === 'lm') {
+        const s = decoderRef.current ?? (lmRepo ? await loadDecoder(lmRepo) : null);
+        if (!s) throw new Error('Pick a decoder-LM roster entry to use the generation engine.');
+        answers = await s.decide(state, questions);
+      } else if (decideMode) {
+        answers = await (decideRef.current ?? (await loadDecide(repo))).decide(state, questions);
+      } else {
+        answers = await (await loadJev(repo)).decide(state, questions);
+      }
+      setResults({ q: questions, a: answers, ms: performance.now() - t0 });
       setPhase('ready');
       onRan?.();
     } catch (e) {
@@ -377,7 +421,7 @@ export default function RunStep({
     <Step
       index="04"
       title="Run it on real text"
-      lede="Run JEV decision checkpoints for typed answers, or use your trained MiniLM classifier for a JEV-shaped choice result. Classifier training currently supports one fixed label set, not multi-question score/noul tasks."
+      lede="Run JEV decision checkpoints for typed answers, let a decoder LM generate them, or use your trained MiniLM classifier for a JEV-shaped choice result. Classifier training currently supports one fixed label set, not multi-question score/noul tasks."
       onNext={onNext}
       nextLabel="Configure training"
     >
@@ -420,6 +464,20 @@ export default function RunStep({
         >
           anvil-ft {ft ? `· ${ft.mode} ${ft.backend}` : '· none'}
         </button>
+        {lmRepo && (
+          <button
+            onClick={() => {
+              setEngine('lm');
+              setResults(null);
+              setHeadResult(null);
+            }}
+            className={`rounded-full border px-4 py-1.5 font-mono text-[10px] uppercase tracking-[0.15em] transition-colors ${
+              engine === 'lm' ? 'border-fg bg-fg text-card' : 'border-line text-dim hover:text-fg'
+            }`}
+          >
+            decoder lm
+          </button>
+        )}
         <label className="cursor-pointer rounded-full border border-line px-4 py-1.5 font-mono text-[10px] uppercase tracking-[0.15em] text-dim transition-colors hover:border-fg hover:text-fg">
           load .safetensors
           <input
@@ -447,6 +505,8 @@ export default function RunStep({
             anvil-ft — MiniLM {ft?.mode}
             {ft?.mode === 'lora' ? ` r=${ft.rank}` : ''} + head
           </Tag>
+        ) : engine === 'lm' ? (
+          <Tag tone="ink">{lmRepo}</Tag>
         ) : isJevRunnable(model?.onnx) ? (
           <Tag tone="ink">{model?.onnx}</Tag>
         ) : (
@@ -480,6 +540,11 @@ export default function RunStep({
         {engine === 'jev' && decideRt && (
           <Tag tone="solid">
             {decideRt.device} · {decideRt.dtype}
+          </Tag>
+        )}
+        {engine === 'lm' && decoderRt && (
+          <Tag tone="solid">
+            {decoderRt.device} · {decoderRt.dtype}
           </Tag>
         )}
       </div>
@@ -523,12 +588,12 @@ export default function RunStep({
                 className="flex items-center gap-2 rounded-full bg-fg px-5 py-2.5 font-mono text-[11px] uppercase tracking-[0.15em] text-card transition-opacity hover:opacity-85 disabled:opacity-40"
               >
                 <Play size={13} weight="fill" />
-                Decide
+                {engine === 'lm' ? 'Generate' : 'Decide'}
               </button>
             ) : phase === 'deciding' ? (
               <span className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-dim">
                 <SpinnerGap size={14} className="animate-spin text-ink" />
-                one forward pass…
+                {engine === 'lm' ? 'generating…' : 'one forward pass…'}
               </span>
             ) : (
               <button
@@ -563,22 +628,49 @@ export default function RunStep({
           {engine === 'head' || engine === 'ft' ? (
             <>
               <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-faint">
-                label set
+                {ft?.tasks && ft.tasks.length > 1 && engine === 'ft'
+                  ? `tasks · ${ft.tasks.length}`
+                  : 'label set'}
               </p>
-              <div className="flex flex-wrap gap-1.5">
-                {((engine === 'ft' ? ft?.labels : head?.labels) ?? []).map((l) => (
-                  <span
-                    key={l}
-                    className="rounded-full border border-ink/60 bg-ink-dim px-2.5 py-0.5 font-mono text-[10px] text-ink"
-                  >
-                    {l}
-                  </span>
-                ))}
-              </div>
+              {engine === 'ft' && ft?.tasks && ft.tasks.length > 1 ? (
+                <div className="flex flex-col gap-2.5">
+                  {ft.tasks.map((t) => (
+                    <div key={t.name}>
+                      <p className="mb-1 font-mono text-[9px] uppercase tracking-widest text-ink">
+                        {t.name}
+                        {t.valAcc != null && (
+                          <span className="ml-2 text-faint">val {(t.valAcc * 100).toFixed(0)}%</span>
+                        )}
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {t.labels.map((l) => (
+                          <span
+                            key={l}
+                            className="rounded-full border border-ink/60 bg-ink-dim px-2.5 py-0.5 font-mono text-[10px] text-ink"
+                          >
+                            {l}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-1.5">
+                  {((engine === 'ft' ? ft?.labels : head?.labels) ?? []).map((l) => (
+                    <span
+                      key={l}
+                      className="rounded-full border border-ink/60 bg-ink-dim px-2.5 py-0.5 font-mono text-[10px] text-ink"
+                    >
+                      {l}
+                    </span>
+                  ))}
+                </div>
+              )}
               <p className="mt-3 font-mono text-[10px] leading-relaxed text-faint">
                 {engine === 'ft'
                   ? ft
-                    ? `${ft.mode} on MiniLM · ${ft.rows} rows · ${ft.backend} · loss ${ft.loss.toFixed(3)}${ft.valAcc != null ? ` · val ${(ft.valAcc * 100).toFixed(0)}%` : ''}`
+                    ? `${ft.mode} on ${ft.arch === 'deberta' ? 'DeBERTa-v3-small' : 'MiniLM'} · ${ft.rows} rows · ${ft.backend} · loss ${ft.loss.toFixed(3)}${ft.valAcc != null ? ` · val ${(ft.valAcc * 100).toFixed(0)}%` : ''}`
                     : 'fine-tune in step 05 or load a .safetensors export'
                   : head
                     ? `trained ${head.rows} rows · ${head.backend} · loss ${head.loss.toFixed(3)}${head.valAcc != null ? ` · val ${(head.valAcc * 100).toFixed(0)}%` : ''}`
@@ -629,6 +721,26 @@ export default function RunStep({
         <p className="mb-5 rounded-xl border border-dashed border-fg/40 bg-paper px-4 py-3 font-mono text-[12px] text-fg">
           {error}
         </p>
+      )}
+
+      {/* ft result — one card per task */}
+      {taskResults && (
+        <div className="mb-5">
+          <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-faint">
+            trained classifier · {taskResults.tasks.length} task
+            {taskResults.tasks.length > 1 ? 's' : ''} · {taskResults.ms.toFixed(0)} ms · choice
+            output
+          </p>
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {taskResults.tasks.map((t) => (
+              <AnswerCard
+                key={t.name}
+                q={{ type: 'choice', instructions: t.name, options: t.labels }}
+                a={classifierAnswer(t.labels, t.probs)}
+              />
+            ))}
+          </div>
+        </div>
       )}
 
       {/* head result */}

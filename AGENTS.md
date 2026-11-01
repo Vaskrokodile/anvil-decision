@@ -14,7 +14,12 @@ selection → dataset builder → job spec. Landing + Studio SPA.
 - `npm run dev` — Vite dev server (http://localhost:5173)
 - `npm run build` — `tsc -b` + production build
 - `npm run lint` — oxlint
-- `npm test` — core parser, job bundle, and artifact round-trip tests
+- `npm test` — core parser, job bundle, artifact round-trip, zip, bench, and
+  encoder gradient checks (`xformer-smoke` + `deberta-smoke`)
+- `npm run test:weights` — real-weight parity scripts (network; big downloads:
+  `parity.mts` MiniLM ~91MB, `parity-deberta.mts` ~765MB)
+- `npm run test:e2e` — Playwright studio-flow smoke; browsers live on
+  `E:\pw-browsers` (`PLAYWRIGHT_BROWSERS_PATH` is set in `playwright.config.ts`)
 
 ## Structure
 
@@ -36,11 +41,23 @@ selection → dataset builder → job spec. Landing + Studio SPA.
   training engine v1: linear head over frozen embeddings, CPU + WGSL backends.
 - `src/lib/safetensors.ts` / `trainedHead.ts` — artifact export & session store.
 - `src/lib/xformer/` — own encoder implementation for real fine-tune:
-  `spec.ts` (EncoderBackend contract + MINILM_L6 + paramShape),
-  `weights.ts` (fetch MiniLM safetensors ~91MB), `cpu.ts` (reference backend),
-  `wgsl.ts` (WebGPU compute backend, fwd+bwd), `ft.worker.ts` (train loop),
-  `ft.ts` (artifact store + tuned-encoder inference). Modes: head (frozen
-  embeddings), lora (adapters on q/k/v/o/f1/f2), full (all encoder params).
+  `spec.ts` (EncoderBackend contract + MINILM_L6 + DEBERTA_V3_SMALL + paramShape),
+  `weights.ts` (fetch MiniLM safetensors ~91MB, DeBERTa ~565MB),
+  `cpu.ts` (reference backend), `wgsl.ts` (WebGPU compute backend, fwd+bwd),
+  `deberta.ts` (DeBERTa-v3 disentangled attention fwd+bwd, CPU only),
+  `ft.worker.ts` (train loop), `ft.ts` (artifact store + tuned-encoder
+  inference). Modes: head (frozen embeddings), lora (adapters on q/k/v/o/f1/f2),
+  full (all encoder params). Substrates: `arch: 'minilm' | 'deberta'` on
+  FtRequest/FtArtifact — deberta is CPU-only and verified to exact logits
+  parity vs the reference ONNX (`scripts/parity-deberta.mts`).
+- `src/lib/sessions.ts` — release heavy JEV/Decide/decoder/embedder sessions
+  on engine switches.
+- `src/lib/decoder.ts` — transformers.js text-generation driver for decoder
+  roster entries (SmolLM2 etc.).
+- `src/lib/evaluate.ts` — held-out eval report: artifact vs roster baseline
+  (accuracy, macro-F1, per-class P/R/F1, confusion matrix, latency, agreement).
+- `src/lib/zip.ts` + `src/lib/bundle.ts` — store-only ZIP writer + model-card /
+  predict.mjs bundle builder for exports.
 
 ## Conventions
 

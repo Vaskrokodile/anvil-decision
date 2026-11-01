@@ -12,15 +12,35 @@ import type { TrainConfig } from './Studio';
 import { embedTexts, EMBED_DIM, EMBED_MODEL } from '../lib/embed';
 import type { TrainMsg, TrainRequest } from '../lib/train.worker';
 import { writeSafetensors, downloadBytes } from '../lib/safetensors';
-import { setTrainedHead, type TrainedHead } from '../lib/trainedHead';
+import { setTrainedHead, inferHead, type TrainedHead } from '../lib/trainedHead';
 import type { FtMsg, FtRequest } from '../lib/xformer/ft.worker';
-import { setFtArtifact, type FtArtifact } from '../lib/xformer/ft';
-import { MINILM_L6, paramShape } from '../lib/xformer/spec';
+import { TASK_MISSING } from '../lib/xformer/ft.worker';
+import { setFtArtifact, inferFt, type FtArtifact } from '../lib/xformer/ft';
+import { MINILM_L6, DEBERTA_V3_SMALL, paramShape, type XformerSpec } from '../lib/xformer/spec';
 import { setWorkspaceItem } from '../lib/workspace';
 import { createJobSpec, parseJobSpec } from '../lib/jobSpec';
+import { stratifiedSplit } from '../lib/split';
+import { evaluateRows, type EvalReport } from '../lib/evaluate';
+import {
+  RUNNABLE,
+  isJevRunnable,
+  isDecideOnnx,
+  loadJev,
+  type Answer,
+  type Question,
+} from '../lib/jev';
+import { loadDecide } from '../lib/gliner2';
+import { loadDecoder } from '../lib/decoder';
+import { releaseSessions } from '../lib/sessions';
+import { bundleEntries, headCard, ftCard, headBundleExtras, ftBundleExtras } from '../lib/bundle';
 
-function estimateMB(cfg: TrainConfig, rank: number, classes: number): number {
-  const { layers, dModel, dFfn, heads } = MINILM_L6;
+function estimateMB(
+  cfg: TrainConfig,
+  rank: number,
+  classes: number,
+  spec: XformerSpec = MINILM_L6,
+): number {
+  const { layers, dModel, dFfn, heads } = spec;
   const fullParams = layers * (4 * dModel * dModel + 2 * dModel * dFfn + 9 * dModel + dFfn) + 2 * dModel;
   const headParams = dModel * classes + classes;
   const encoderAdapters = layers * rank * (10 * dModel + 2 * dFfn);
@@ -42,7 +62,7 @@ const LR_OPTIONS = [5e-5, 1e-4, 5e-4, 1e-3, 5e-3, 1e-2];
 
 const MODE_LABELS: Record<TrainMode, string> = {
   head: 'Head — linear probe over frozen MiniLM embeddings',
-  lora: 'LoRA — adapters on the MiniLM encoder (own WGSL forward/backward)',
+  lora: 'LoRA — adapters on the encoder (own forward/backward, WGSL or CPU)',
   full: 'Full fine-tune — transformer weights move; token embeddings stay frozen',
 };
 
@@ -102,6 +122,8 @@ export default function ConfigStep({
   // --- training state -----------------------------------------------------
   const [textCol, setTextCol] = useState<string | null>(null);
   const [labelCol, setLabelCol] = useState<string | null>(null);
+  const [extraTaskCols, setExtraTaskCols] = useState<string[]>([]);
+  const [arch, setArch] = useState<'minilm' | 'deberta'>('minilm');
   const [phase, setPhase] = useState<'idle' | 'embed' | 'fetch' | 'tok' | 'train' | 'done'>('idle');
   const [embedPct, setEmbedPct] = useState(0);
   const [fetchPct, setFetchPct] = useState(0);
@@ -110,7 +132,11 @@ export default function ConfigStep({
   const [result, setResult] = useState<TrainedHead | null>(null);
   const [ftResult, setFtResult] = useState<FtArtifact | null>(null);
   const [liveBackend, setLiveBackend] = useState<string | null>(null);
+  const [parity, setParity] = useState<{ backend: 'cpu' | 'wgsl'; cos: number } | null>(null);
   const [trainErr, setTrainErr] = useState<string | null>(null);
+  const [evalPhase, setEvalPhase] = useState<'idle' | 'loading' | 'running' | 'done'>('idle');
+  const [evalPct, setEvalPct] = useState(0);
+  const [evalReport, setEvalReport] = useState<EvalReport | null>(null);
   const reportStorage = onStorageError ?? setTrainErr;
   const jobInputRef = useRef<HTMLInputElement>(null);
   const workerRef = useRef<Worker | null>(null);
@@ -159,9 +185,47 @@ export default function ConfigStep({
     [trainRows, lCol],
   );
 
+  /** Candidate extra task columns: ≠ text col, 2..64 uniques, ≥8 labeled rows. */
+  const taskCandidates = useMemo(() => {
+    if (!dataset) return [];
+    return dataset.columns
+      .filter((c) => c !== tCol && c !== lCol)
+      .map((col) => {
+        const vals = trainRows.map((r) => (r[col] ?? '').trim()).filter(Boolean);
+        return { col, uniques: new Set(vals).size, n: vals.length };
+      })
+      .filter((x) => x.uniques >= 2 && x.uniques <= 64 && x.n >= 8);
+  }, [dataset, tCol, lCol, trainRows]);
+
+  const taskCols = useMemo(
+    () => [lCol, ...extraTaskCols.filter((c) => taskCandidates.some((x) => x.col === c))],
+    [lCol, extraTaskCols, taskCandidates],
+  );
+
+  /** Multi-task request payload — one {name, labels, y} per label column. */
+  const reqTasks = useMemo(() => {
+    if (taskCols.length < 2) return undefined;
+    return taskCols.map((col) => {
+      const taskLabels = [
+        ...new Set(trainRows.map((r) => (r[col] ?? '').trim()).filter(Boolean)),
+      ];
+      const y = Uint32Array.from(
+        trainRows.map((r) => {
+          const v = (r[col] ?? '').trim();
+          return v ? taskLabels.indexOf(v) : TASK_MISSING;
+        }),
+      );
+      return { name: col, labels: taskLabels, y };
+    });
+  }, [taskCols, trainRows]);
+
   const busy = phase !== 'idle' && phase !== 'done';
   const trainable = !busy && tCol !== lCol && trainRows.length >= 8 && labels.length >= 2 && labels.length <= 64;
-  const est = useMemo(() => estimateMB(config, rank, labels.length), [config, rank, labels.length]);
+  const activeSpec = arch === 'deberta' && config.mode !== 'head' ? DEBERTA_V3_SMALL : MINILM_L6;
+  const est = useMemo(
+    () => estimateMB(config, rank, labels.length, activeSpec),
+    [config, rank, labels.length, activeSpec],
+  );
   const over = report?.ok === true && budget !== null && est > budget;
   const ready = dataset !== null && trainable;
 
@@ -171,6 +235,9 @@ export default function ConfigStep({
     setTrainErr(null);
     setHistory([]);
     setResult(null);
+    setFtResult(null);
+    setEvalReport(null);
+    setEvalPhase('idle');
     try {
       setPhase('embed');
       setEmbedPct(0);
@@ -265,8 +332,12 @@ export default function ConfigStep({
     const runId = ++runIdRef.current;
     setTrainErr(null);
     setHistory([]);
+    setResult(null);
     setFtResult(null);
     setLiveBackend(null);
+    setParity(null);
+    setEvalReport(null);
+    setEvalPhase('idle');
     try {
       const worker = new Worker(
         new URL('../lib/xformer/ft.worker.ts', import.meta.url),
@@ -284,12 +355,21 @@ export default function ConfigStep({
         valAcc: number | null;
         valN: number;
         trainN: number;
+        tasks?: {
+          name: string;
+          labels: string[];
+          headW: Float32Array;
+          headB: Float32Array;
+          valAcc: number | null;
+          valN: number;
+        }[];
       }>((resolve, reject) => {
         cancelRef.current = () => reject(new Error('Training cancelled.'));
         worker.onmessage = (e: MessageEvent<FtMsg>) => {
           const m = e.data;
           if (m.type === 'weights') setFetchPct(m.frac);
           else if (m.type === 'tokenizing') setPhase('tok');
+          else if (m.type === 'parity') setParity({ backend: m.backend, cos: m.cos });
           else if (m.type === 'epoch') {
             setPhase('train');
             setLiveBackend(m.backend);
@@ -311,6 +391,8 @@ export default function ConfigStep({
           texts: trainRows.map((r) => r[tCol].trim()),
           labels: Uint32Array.from(trainRows.map((r) => labels.indexOf(r[lCol].trim()))),
           nClasses: labels.length,
+          tasks: reqTasks,
+          arch,
           lr: config.lr,
           epochs: config.epochs,
           mode: config.mode === 'full' ? 'full' : 'lora',
@@ -332,6 +414,15 @@ export default function ConfigStep({
         headW: done.headW,
         headB: done.headB,
         labels,
+        tasks: done.tasks?.map((t) => ({
+          name: t.name,
+          labels: t.labels,
+          headW: t.headW,
+          headB: t.headB,
+          valAcc: t.valAcc ?? undefined,
+          valN: t.valN,
+        })),
+        arch,
         mode: config.mode === 'full' ? 'full' : 'lora',
         rank,
         backend: done.backend,
@@ -381,39 +472,147 @@ export default function ConfigStep({
         anvil: 'head-v1',
       },
     );
-    downloadBytes('anvil-head.safetensors', bytes);
+    downloadBytes(
+      'anvil-head-bundle.zip',
+      bundleEntries(
+        'anvil-head.safetensors',
+        bytes,
+        headCard(result),
+        headBundleExtras(result),
+      ),
+    );
   };
 
   const exportFt = () => {
     if (!ftResult) return;
-    const tensors: Record<string, { shape: number[]; data: Float32Array }> = {
-      'head.weight': {
+    const tensors: Record<string, { shape: number[]; data: Float32Array }> = {};
+    const multi = ftResult.tasks && ftResult.tasks.length > 1;
+    if (multi) {
+      ftResult.tasks!.forEach((t, i) => {
+        tensors[`head.${i}.weight`] = {
+          shape: [EMBED_DIM, t.labels.length],
+          data: t.headW,
+        };
+        tensors[`head.${i}.bias`] = { shape: [t.labels.length], data: t.headB };
+      });
+    } else {
+      tensors['head.weight'] = {
         shape: [EMBED_DIM, ftResult.labels.length],
         data: ftResult.headW,
-      },
-      'head.bias': { shape: [ftResult.labels.length], data: ftResult.headB },
-    };
+      };
+      tensors['head.bias'] = { shape: [ftResult.labels.length], data: ftResult.headB };
+    }
+    const spec = ftResult.arch === 'deberta' ? DEBERTA_V3_SMALL : MINILM_L6;
     for (const [k, v] of Object.entries(ftResult.params))
-      tensors[k] = { shape: paramShape(k, MINILM_L6, ftResult.rank), data: v };
+      tensors[k] = { shape: paramShape(k, spec, ftResult.rank), data: v };
+    const stBytes = writeSafetensors(tensors, {
+      encoder:
+        ftResult.arch === 'deberta'
+          ? 'cross-encoder/nli-deberta-v3-small'
+          : 'sentence-transformers/all-MiniLM-L6-v2',
+      arch: ftResult.arch ?? 'minilm',
+      labels: ftResult.labels.join('\n'),
+      ...(multi
+        ? {
+            tasks: JSON.stringify(
+              ftResult.tasks!.map((t) => ({ name: t.name, labels: t.labels })),
+            ),
+          }
+        : {}),
+      mode: ftResult.mode,
+      rank: String(ftResult.rank),
+      maxSeq: String(ftResult.maxSeq),
+      loss: String(ftResult.loss),
+      acc: String(ftResult.acc),
+      ...(ftResult.valAcc != null ? { valAcc: String(ftResult.valAcc) } : {}),
+      valN: String(ftResult.valN ?? 0),
+      trainN: String(ftResult.trainN ?? ftResult.rows),
+      rows: String(ftResult.rows),
+      trainedAt: ftResult.trainedAt,
+      backend: ftResult.backend,
+      anvil: 'ft-v1',
+    });
     downloadBytes(
-      'anvil-ft.safetensors',
-      writeSafetensors(tensors, {
-        encoder: 'sentence-transformers/all-MiniLM-L6-v2',
-        labels: ftResult.labels.join('\n'),
-        mode: ftResult.mode,
-        rank: String(ftResult.rank),
-        maxSeq: String(ftResult.maxSeq),
-        loss: String(ftResult.loss),
-        acc: String(ftResult.acc),
-        ...(ftResult.valAcc != null ? { valAcc: String(ftResult.valAcc) } : {}),
-        valN: String(ftResult.valN ?? 0),
-        trainN: String(ftResult.trainN ?? ftResult.rows),
-        rows: String(ftResult.rows),
-        trainedAt: ftResult.trainedAt,
-        backend: ftResult.backend,
-        anvil: 'ft-v1',
-      }),
+      'anvil-ft-bundle.zip',
+      bundleEntries('anvil-ft.safetensors', stBytes, ftCard(ftResult), ftBundleExtras()),
     );
+  };
+
+  const EVAL_ROWS = 24;
+
+  /**
+   * Reproduces the exact held-out split the worker used (same labels array,
+   * valFrac, seed) and scores the trained artifact vs an inference baseline
+   * on rows neither trained on.
+   */
+  const runEval = async () => {
+    const artifact = result ?? ftResult;
+    if (!dataset || !artifact) return;
+    setEvalPhase('loading');
+    setEvalPct(0);
+    setEvalReport(null);
+    setTrainErr(null);
+    try {
+      const y = Uint32Array.from(trainRows.map((r) => labels.indexOf(r[lCol].trim())));
+      const { val } = stratifiedSplit(y, 0.2, 1337);
+      if (val.length === 0) {
+        throw new Error('No held-out rows — the split kept every row in train.');
+      }
+      const evalIdx = val.slice(0, EVAL_ROWS);
+      const texts = evalIdx.map((i) => trainRows[i][tCol].trim());
+      const gold = evalIdx.map((i) => y[i]);
+
+      const trained = result
+        ? (t: string) => inferHead(t, result)
+        : (t: string) => inferFt(t, ftResult!);
+
+      const q = (): Question[] => [
+        {
+          type: 'choice',
+          instructions: 'Assign the single most appropriate label to this text.',
+          options: labels,
+        },
+      ];
+      let baseline: { name: string; run: (t: string) => Promise<Answer> };
+      if (model?.arch === 'decoder-lm' && model.runtime !== 'planned') {
+        const repo = model.onnx ?? model.hf;
+        await releaseSessions('decoder');
+        const s = await loadDecoder(repo);
+        baseline = {
+          name: `${model.name} · generated`,
+          run: async (t) => (await s.decide(t, q()))[0],
+        };
+      } else {
+        const repo = isJevRunnable(model?.onnx) ? (model!.onnx as string) : RUNNABLE[0].id;
+        if (isDecideOnnx(repo)) {
+          await releaseSessions('decide');
+          const s = await loadDecide(repo);
+          baseline = {
+            name: 'GLiNER2.5 Decide',
+            run: async (t) => (await s.decide(t, q()))[0],
+          };
+        } else {
+          await releaseSessions('jev');
+          const j = await loadJev(repo);
+          baseline = { name: repo, run: async (t) => (await j.decide(t, q()))[0] };
+        }
+      }
+
+      setEvalPhase('running');
+      const rep = await evaluateRows({
+        texts,
+        gold,
+        labels,
+        trained,
+        baseline,
+        onRow: (d, t) => setEvalPct(d / t),
+      });
+      setEvalReport(rep);
+      setEvalPhase('done');
+    } catch (e) {
+      setTrainErr(e instanceof Error ? e.message : String(e));
+      setEvalPhase('idle');
+    }
   };
 
   const exportSpec = () => {
@@ -458,7 +657,7 @@ export default function ConfigStep({
     <Step
       index="05"
       title="Configure & train"
-      lede="Both engines train a single-label MiniLM choice classifier: a linear head or encoder LoRA/full mode. WGSL is used when available with CPU fallback. Validation is held out; roster checkpoints are not fine-tuned here."
+      lede="Train a MiniLM classifier: a linear head over frozen embeddings, or LoRA/full fine-tune of the encoder. Check extra label columns for one head per task over a shared encoder. WGSL is used when available with CPU fallback; validation is held out. Roster checkpoints are not fine-tuned here."
     >
       <div className="grid gap-3 lg:grid-cols-5">
         {/* left: method + hyperparams */}
@@ -500,6 +699,36 @@ export default function ConfigStep({
                     }`}
                   >
                     r={r}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {config.mode !== 'head' && (
+            <div className="mb-6">
+              <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-faint">
+                Substrate
+              </p>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {(
+                  [
+                    ['minilm', 'MiniLM-L6', 'WGSL + CPU · ~91 MB · fast'],
+                    ['deberta', 'DeBERTa-v3-small', 'CPU only · ~570 MB · disentangled attn'],
+                  ] as const
+                ).map(([key, name, note]) => (
+                  <button
+                    key={key}
+                    onClick={() => setArch(key)}
+                    disabled={busy}
+                    className={`flex flex-col items-start gap-0.5 rounded-xl border px-3 py-2.5 text-left transition-colors disabled:opacity-50 ${
+                      arch === key ? 'border-ink bg-ink-dim' : 'border-line hover:border-faint'
+                    }`}
+                  >
+                    <span className={`font-mono text-[11px] ${arch === key ? 'text-ink' : 'text-fg'}`}>
+                      {name}
+                    </span>
+                    <span className="font-mono text-[9.5px] text-faint">{note}</span>
                   </button>
                 ))}
               </div>
@@ -581,16 +810,57 @@ export default function ConfigStep({
               ))}
             </div>
           )}
+
+          {/* extra task columns — multi-task heads over the shared encoder */}
+          {dataset && config.mode !== 'head' && taskCandidates.length > 0 && (
+            <div className="mt-4">
+              <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-faint">
+                extra task columns · multi-task
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {taskCandidates.map((x) => {
+                  const on = extraTaskCols.includes(x.col);
+                  return (
+                    <button
+                      key={x.col}
+                      onClick={() =>
+                        setExtraTaskCols((cur) =>
+                          on ? cur.filter((c) => c !== x.col) : [...cur, x.col],
+                        )
+                      }
+                      className={`rounded-full border px-3 py-1 font-mono text-[11px] transition-colors ${
+                        on ? 'border-ink bg-ink-dim text-ink' : 'border-line text-dim hover:border-faint'
+                      }`}
+                    >
+                      {x.col} · {x.uniques}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="mt-1.5 font-mono text-[10px] text-faint">
+                {reqTasks
+                  ? `${reqTasks.length} heads over one shared encoder — unlabeled rows are skipped per task`
+                  : 'check extra label columns — each becomes its own head on the shared encoder'}
+              </p>
+            </div>
+          )}
+          {dataset && config.mode === 'head' && extraTaskCols.length > 0 && (
+            <p className="mt-4 font-mono text-[10px] text-faint">
+              extra task columns apply to LoRA / full only — head mode trains the label column.
+            </p>
+          )}
         </div>
 
         {/* right: budget + actions */}
         <div className="flex flex-col rounded-2xl border border-line bg-card p-5 lg:col-span-2">
           <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.2em] text-faint">
-            MiniLM working-set estimate · {config.mode}
+            {activeSpec === DEBERTA_V3_SMALL ? 'DeBERTa' : 'MiniLM'} working-set estimate ·{' '}
+            {config.mode}
           </p>
           <p className="mb-4 font-mono text-[10px] leading-relaxed text-dim">
-            This trainer updates MiniLM-L6 and a single-label classifier. The roster choice
-            {model ? ` (${model.name})` : ''} is not fine-tuned by this run.
+            This trainer updates {activeSpec === DEBERTA_V3_SMALL ? 'DeBERTa-v3-small' : 'MiniLM-L6'}
+            {reqTasks ? ` and ${reqTasks.length} task heads` : ' and a single-label classifier'}.
+            The roster choice{model ? ` (${model.name})` : ''} is not fine-tuned by this run.
           </p>
           <div className="mb-2 flex items-baseline justify-between font-mono text-[12px]">
             <span className={over ? 'text-fg underline decoration-dashed underline-offset-4' : 'text-fg'}>
@@ -619,7 +889,8 @@ export default function ConfigStep({
               >
                 <Play size={13} weight="fill" />
                 {config.mode === 'head' ? 'Train head' : config.mode === 'lora' ? `LoRA r=${rank}` : 'Full fine-tune'}{' '}
-                — {trainRows.length} rows · {labels.length} classes · 80/20 split
+                — {trainRows.length} rows ·{' '}
+                {reqTasks ? `${reqTasks.length} tasks` : `${labels.length} classes`} · 80/20 split
               </button>
             ) : phase === 'embed' ? (
               <div className="rounded-full border border-line px-4 py-3 font-mono text-[11px] uppercase tracking-[0.15em] text-dim">
@@ -657,6 +928,14 @@ export default function ConfigStep({
                 </div>
                 <LossCurve history={history} />
               </div>
+            )}
+
+            {parity && (
+              <p className="font-mono text-[10px] leading-relaxed text-faint">
+                {parity.backend === 'wgsl'
+                  ? `wgsl parity verified on-device (cos ${parity.cos.toFixed(4)} vs CPU)`
+                  : `wgsl failed device parity (cos ${parity.cos.toFixed(4)}) — running on CPU`}
+              </p>
             )}
 
             {trainErr && (
@@ -710,7 +989,7 @@ export default function ConfigStep({
                     className="flex flex-1 items-center justify-center gap-2 rounded-full border border-fg px-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.15em] text-fg transition-colors hover:bg-fg hover:text-card"
                   >
                     <Download size={13} />
-                    .safetensors
+                    bundle .zip
                   </button>
                   <button
                     onClick={() => {
@@ -747,7 +1026,7 @@ export default function ConfigStep({
                     className="flex flex-1 items-center justify-center gap-2 rounded-full border border-fg px-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.15em] text-fg transition-colors hover:bg-fg hover:text-card"
                   >
                     <Download size={13} />
-                    .safetensors
+                    bundle .zip
                   </button>
                   <button
                     onClick={() => {
@@ -799,6 +1078,167 @@ export default function ConfigStep({
           </div>
         </div>
       </div>
+
+      {/* held-out eval: trained artifact vs inference baseline on the same rows */}
+      {phase === 'done' && (result || ftResult) && !(ftResult?.tasks && ftResult.tasks.length > 1) && (
+        <div className="mt-3 rounded-2xl border border-line bg-card p-5">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-faint">
+                held-out eval
+              </p>
+              <p className="mt-1 text-[13px] leading-relaxed text-dim">
+                Score the trained artifact and an inference baseline on up to {EVAL_ROWS} rows the
+                trainer never saw — same seed, same split.
+              </p>
+            </div>
+            <button
+              onClick={runEval}
+              disabled={evalPhase === 'loading' || evalPhase === 'running'}
+              className="flex items-center gap-2 rounded-full bg-fg px-5 py-2.5 font-mono text-[11px] uppercase tracking-[0.15em] text-card transition-opacity hover:opacity-85 disabled:opacity-40"
+            >
+              {evalPhase === 'loading' ? (
+                'loading baseline…'
+              ) : evalPhase === 'running' ? (
+                `evaluating… ${Math.round(evalPct * 100)}%`
+              ) : (
+                <>
+                  <Play size={13} weight="fill" />
+                  {evalPhase === 'done' ? 'Re-run eval' : 'Evaluate'}
+                </>
+              )}
+            </button>
+          </div>
+
+          {evalReport && (
+            <div className="grid gap-3 lg:grid-cols-5">
+              {/* side-by-side metrics */}
+              <div className="rounded-xl border border-line bg-paper p-4 lg:col-span-2">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-faint">
+                      trained · {result ? 'head' : ftResult!.mode}
+                    </p>
+                    <p className="font-display text-3xl text-fg">
+                      {(evalReport.trained.acc * 100).toFixed(0)}%
+                    </p>
+                    <p className="mt-1 font-mono text-[10px] text-dim">
+                      f1 {evalReport.trained.macroF1.toFixed(2)} ·{' '}
+                      {evalReport.trained.ms.toFixed(0)} ms/row
+                    </p>
+                  </div>
+                  <div>
+                    <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-faint">
+                      baseline
+                    </p>
+                    {evalReport.baseline ? (
+                      <>
+                        <p className="font-display text-3xl text-fg">
+                          {(evalReport.baseline.acc * 100).toFixed(0)}%
+                        </p>
+                        <p className="mt-1 font-mono text-[10px] text-dim">
+                          f1 {evalReport.baseline.macroF1.toFixed(2)} ·{' '}
+                          {evalReport.baseline.ms.toFixed(0)} ms/row
+                        </p>
+                        <p className="mt-1 truncate font-mono text-[10px] text-faint">
+                          {evalReport.baseline.name}
+                          {evalReport.baseline.answered < evalReport.rows &&
+                            ` · ${evalReport.rows - evalReport.baseline.answered} unparsed`}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="font-mono text-[11px] text-faint">no baseline run</p>
+                    )}
+                  </div>
+                </div>
+                {evalReport.agreement != null && (
+                  <p className="mt-3 border-t border-line-soft pt-3 font-mono text-[10px] text-dim">
+                    engines agree on {(evalReport.agreement * 100).toFixed(0)}% of{' '}
+                    {evalReport.rows} rows
+                  </p>
+                )}
+
+                {/* per-class table */}
+                <table className="mt-3 w-full border-t border-line-soft font-mono text-[10.5px]">
+                  <thead>
+                    <tr className="text-left text-faint">
+                      <th className="py-1.5 pr-2 font-normal">label</th>
+                      <th className="py-1.5 pr-2 text-right font-normal">p</th>
+                      <th className="py-1.5 pr-2 text-right font-normal">r</th>
+                      <th className="py-1.5 pr-2 text-right font-normal">f1</th>
+                      <th className="py-1.5 text-right font-normal">n</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {evalReport.trained.perClass.map((pc) => (
+                      <tr key={pc.label} className="border-t border-line-soft text-dim">
+                        <td className="max-w-[10rem] truncate py-1.5 pr-2 text-fg">{pc.label}</td>
+                        <td className="py-1.5 pr-2 text-right">{pc.precision.toFixed(2)}</td>
+                        <td className="py-1.5 pr-2 text-right">{pc.recall.toFixed(2)}</td>
+                        <td className="py-1.5 pr-2 text-right">{pc.f1.toFixed(2)}</td>
+                        <td className="py-1.5 text-right">{pc.support}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* confusion matrix */}
+              <div className="rounded-xl border border-line bg-paper p-4 lg:col-span-3">
+                <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-faint">
+                  confusion · trained — rows true, cols predicted
+                </p>
+                <div className="overflow-x-auto">
+                  <table className="border-collapse font-mono text-[10px]">
+                    <thead>
+                      <tr>
+                        <th className="p-1" />
+                        {evalReport.labels.map((l) => (
+                          <th key={l} className="max-w-[5rem] truncate p-1 font-normal text-faint">
+                            {l}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {evalReport.trained.confusion.map((row, i) => {
+                        const max = Math.max(1, ...row);
+                        return (
+                          <tr key={i}>
+                            <th className="max-w-[7rem] truncate p-1 text-left font-normal text-faint">
+                              {evalReport.labels[i]}
+                            </th>
+                            {row.map((n, j) => (
+                              <td
+                                key={j}
+                                className={`h-8 w-10 border border-line-soft p-1 text-center ${
+                                  i === j ? 'text-fg' : 'text-dim'
+                                }`}
+                                style={
+                                  n > 0
+                                    ? {
+                                        backgroundColor: `color-mix(in srgb, var(--color-ink) ${Math.round(
+                                          (n / max) * (i === j ? 85 : 45),
+                                        )}%, transparent)`,
+                                        color: n / max > 0.5 ? 'var(--color-card)' : undefined,
+                                      }
+                                    : undefined
+                                }
+                              >
+                                {n || ''}
+                              </td>
+                            ))}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </Step>
   );
 }

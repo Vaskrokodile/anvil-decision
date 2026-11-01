@@ -36,7 +36,7 @@ export default function ModelStep({
       title="Choose an inference target"
       lede={
         report?.ok
-          ? `Tier ${tier} assigned — fit badges are rough resource estimates. This roster selects inference candidates; the trainer uses MiniLM-L6.`
+          ? `Tier ${tier} assigned — fit badges are rough resource estimates. This pick sets the sector question pack and the eval baseline in the Run step; the trainer always fine-tunes MiniLM-L6, not the roster checkpoint.`
           : 'Probe your hardware first — or browse inference candidates anyway.'
       }
       onNext={onNext}

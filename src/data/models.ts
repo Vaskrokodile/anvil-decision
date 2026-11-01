@@ -149,6 +149,7 @@ export const MODELS: ModelEntry[] = [
     minTier: 1,
     trainMode: ['full', 'lora'],
     runtime: 'onnx-webgpu',
+    onnx: 'onnx-community/SmolLM2-135M-Instruct',
     blurb:
       'Smallest usable instruct LM. Ships as q4f16 ONNX — runs today via Transformers.js, trainable head-first.',
   },
@@ -163,6 +164,7 @@ export const MODELS: ModelEntry[] = [
     minTier: 3,
     trainMode: ['lora'],
     runtime: 'onnx-webgpu',
+    onnx: 'onnx-community/Qwen2.5-0.5B-Instruct',
     blurb:
       'Best quality-per-parameter in the half-billion bracket. Strong instruction following; LoRA-tune on discrete GPUs.',
   },
@@ -177,6 +179,7 @@ export const MODELS: ModelEntry[] = [
     minTier: 3,
     trainMode: ['lora'],
     runtime: 'onnx-webgpu',
+    onnx: 'onnx-community/Qwen3-0.6B-ONNX',
     blurb:
       'Hybrid-thinking tiny model. The right pick when decisions need a reasoning trace before the label.',
   },
@@ -191,6 +194,7 @@ export const MODELS: ModelEntry[] = [
     minTier: 4,
     trainMode: ['lora'],
     runtime: 'onnx-webgpu',
+    onnx: 'onnx-community/Llama-3.2-1B-Instruct',
     blurb:
       'The 1B ceiling. Widest tooling support of any browser-runnable LM; LoRA adapters only, and only on real GPUs.',
   },
@@ -209,6 +213,7 @@ export const HONORABLE_MENTIONS: ModelEntry[] = [
     minTier: 2,
     trainMode: ['lora'],
     runtime: 'onnx-webgpu',
+    onnx: 'onnx-community/SmolLM2-360M-Instruct',
     blurb: 'Middle child of the Smol line — noticeably smarter than 135M.',
   },
   {
@@ -222,6 +227,7 @@ export const HONORABLE_MENTIONS: ModelEntry[] = [
     minTier: 2,
     trainMode: ['lora'],
     runtime: 'onnx-webgpu',
+    onnx: 'onnx-community/gemma-3-270m-it-ONNX',
     blurb: 'Google’s purpose-built edge model; extremely memory-efficient arch.',
   },
   {
