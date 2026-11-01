@@ -38,5 +38,5 @@ test('studio flow: probe → model → dataset → run → configure', async ({ 
   // 05 — configure: column mapping + train controls render
   await expect(page.getByText('Configure & train')).toBeVisible();
   await expect(page.getByRole('button', { name: /80\/20 split/i })).toBeVisible();
-  await expect(page.getByRole('button', { name: /Export job bundle/i })).toBeEnabled();
+  await expect(page.getByRole('button', { name: /MiniLM-L6/i })).toBeVisible();
 });

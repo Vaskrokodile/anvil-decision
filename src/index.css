@@ -37,6 +37,24 @@
   --font-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
 }
 
+/* Dark theme — same monochrome system, dark content surface. The hero-sky
+   tokens (abyss/ice) stay constant; paper/card/fg remap to near-abyss values
+   and ink flips to ice so "solid" fills read as the brightest layer. */
+:root[data-theme='dark'] {
+  --color-paper: #0b0c0d;
+  --color-card: #131415;
+  --color-line: #26272b;
+  --color-line-soft: #1d1e22;
+  --color-fg: #f1f2f0;
+  --color-dim: #a5a7a9;
+  --color-faint: #5f6165;
+
+  --color-ink: #f1f2f0;
+  --color-ink-dim: #f1f2f014;
+
+  color-scheme: dark;
+}
+
 html {
   scroll-behavior: smooth;
 }

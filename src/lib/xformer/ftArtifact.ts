@@ -19,6 +19,8 @@ export interface FtArtifact {
   tasks?: FtTask[];
   /** encoder substrate — absent on pre-deberta artifacts */
   arch?: 'minilm' | 'deberta';
+  /** head input pooling — absent on pre-pool artifacts (they used cls) */
+  pool?: 'cls' | 'mean';
   mode: TunerMode;
   rank: number;
   backend: 'cpu' | 'wgsl';
@@ -82,6 +84,7 @@ export function ftFromSafetensors(
     labels: tasks ? tasks[0].labels : (meta.labels ?? '').split('\n').filter(Boolean),
     tasks,
     arch: meta.arch === 'deberta' ? 'deberta' : undefined,
+    pool: meta.pool === 'mean' ? 'mean' : undefined,
     mode,
     rank: Number(meta.rank ?? 8),
     backend: 'cpu',

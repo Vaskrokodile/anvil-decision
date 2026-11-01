@@ -612,22 +612,26 @@ export function VPrism({ settings, className = '' }: VPrismProps) {
     }
 
     // --- POINTER INTERACTIONS (RAF-throttled for zero mouse jank) ---
+    // Hover aims the beam — no click required. lastAimAt feeds the idle
+    // autopilot: if the beam hasn't been steered for a few seconds it drifts
+    // on its own so the spectrum blooms on touch devices and first load.
     let isPointerDown = false;
     let pendingPointerX: number | null = null;
     let pendingPointerY: number | null = null;
+    let lastAimAt = -10;
+    let elapsedTime = 0;
 
     const handlePointerDown = (e: PointerEvent) => {
       if (e.button !== 0 || !e.isPrimary) return;
       isPointerDown = true;
       container.setPointerCapture(e.pointerId);
       aimRayAt(e.clientX, e.clientY);
+      lastAimAt = elapsedTime;
     };
 
     const handlePointerMove = (e: PointerEvent) => {
-      if (isPointerDown) {
-        pendingPointerX = e.clientX;
-        pendingPointerY = e.clientY;
-      }
+      pendingPointerX = e.clientX;
+      pendingPointerY = e.clientY;
     };
 
     const handlePointerUp = () => {
@@ -640,13 +644,7 @@ export function VPrism({ settings, className = '' }: VPrismProps) {
     container.addEventListener('pointermove', handlePointerMove);
     container.addEventListener('pointerup', handlePointerUp);
     container.addEventListener('pointercancel', handlePointerUp);
-
-    // Initial default beam angle
-    setTimeout(() => {
-      if (!isDisposed) {
-        setRay([-10, -0.05, 0], [0, 0, 0]);
-      }
-    }, 200);
+    container.addEventListener('pointerleave', handlePointerUp);
 
     // --- RESIZE HANDLER ---
     const handleResize = () => {
@@ -677,7 +675,6 @@ export function VPrism({ settings, className = '' }: VPrismProps) {
 
     // --- ANIMATION LOOP ---
     let prevTime = performance.now();
-    let elapsedTime = 0;
     let lastBgHex = settingsRef.current.background;
     const dummyObj = new THREE.Object3D();
 
@@ -687,8 +684,16 @@ export function VPrism({ settings, className = '' }: VPrismProps) {
       // Process throttled pointer updates
       if (pendingPointerX !== null && pendingPointerY !== null) {
         aimRayAt(pendingPointerX, pendingPointerY);
+        lastAimAt = elapsedTime;
         pendingPointerX = null;
         pendingPointerY = null;
+      } else if (elapsedTime - lastAimAt > 4 && !isPointerDown) {
+        // idle autopilot — beam sways slowly through the prism so the
+        // spectrum flares on a slow cycle without any user input
+        const th = elapsedTime * 0.22;
+        const px = Math.sin(th) * 2.6;
+        const py = Math.sin(th * 1.7) * 0.9 - 0.15;
+        setRay([-10 + px, py - 0.05, 0], [0, 0, 0]);
       }
 
       const delta = Math.min((currentTime - prevTime) / 1000, 0.1);
@@ -765,6 +770,7 @@ export function VPrism({ settings, className = '' }: VPrismProps) {
       container.removeEventListener('pointermove', handlePointerMove);
       container.removeEventListener('pointerup', handlePointerUp);
       container.removeEventListener('pointercancel', handlePointerUp);
+      container.removeEventListener('pointerleave', handlePointerUp);
 
       composer.dispose();
       cubeRT?.dispose();

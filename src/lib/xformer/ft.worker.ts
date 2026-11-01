@@ -1,6 +1,6 @@
 import { AutoTokenizer } from '@huggingface/transformers';
 import type { EncoderBackend, EncoderInit } from './spec';
-import { MINILM_L6, DEBERTA_V3_SMALL } from './spec';
+import { MINILM_L6, DEBERTA_V3_SMALL, poolForArch, poolHidden, poolGrad } from './spec';
 import { loadMiniLMWeights, loadDebertaWeights, DEBERTA_TOKENIZER } from './weights';
 import { CpuEncoder } from './cpu';
 import { DebertaCpuEncoder } from './deberta';
@@ -145,6 +145,7 @@ class Head {
 async function run(req: FtRequest, post: (m: FtMsg, t?: Transferable[]) => void) {
   const arch = req.arch ?? 'minilm';
   const spec = arch === 'deberta' ? DEBERTA_V3_SMALL : MINILM_L6;
+  const pool = poolForArch(arch);
   const weights = arch === 'deberta'
     ? await loadDebertaWeights((f) => post({ type: 'weights', frac: f }))
     : await loadMiniLMWeights((f) => post({ type: 'weights', frac: f }));
@@ -247,7 +248,7 @@ async function run(req: FtRequest, post: (m: FtMsg, t?: Transferable[]) => void)
       const rows = order.slice(off, off + BATCH);
       for (const r of rows) {
         const hidden = await enc.forward(allIds[r], allMask[r]);
-        const cls = hidden.slice(0, d);
+        const pooled = poolHidden(hidden, allMask[r], T, d, pool);
         const hg = new Float32Array(T * d);
         let touched = false;
         for (const t of tasks) {
@@ -256,7 +257,7 @@ async function run(req: FtRequest, post: (m: FtMsg, t?: Transferable[]) => void)
           t.batchN++;
           const c = t.labels.length;
           const logits = new Float32Array(c);
-          t.head.logits(cls, logits);
+          t.head.logits(pooled, logits);
           epLoss += softmaxCE(logits, 0, c, t.y[r]);
           let best = 0;
           for (let j = 1; j < c; j++) if (logits[j] > logits[best]) best = j;
@@ -272,8 +273,9 @@ async function run(req: FtRequest, post: (m: FtMsg, t?: Transferable[]) => void)
             sum += dz[j];
           }
           for (let j = 0; j < c; j++) dz[j] = dz[j] / sum - (j === t.y[r] ? 1 : 0);
-          const dcls = t.head.backward(cls, dz);
-          for (let k = 0; k < d; k++) hg[k] += dcls[k];
+          const dpooled = t.head.backward(pooled, dz);
+          const dhg = poolGrad(dpooled, allMask[r], T, d, pool);
+          for (let k = 0; k < hg.length; k++) hg[k] += dhg[k];
         }
         if (touched) await enc.backward(hg);
       }
@@ -312,7 +314,7 @@ async function run(req: FtRequest, post: (m: FtMsg, t?: Transferable[]) => void)
     const logits = new Float32Array(c);
     for (const r of t.valIdx) {
       const hidden = await enc.forward(allIds[r], allMask[r]);
-      t.head.logits(hidden.slice(0, d), logits);
+      t.head.logits(poolHidden(hidden, allMask[r], T, d, pool), logits);
       let best = 0;
       for (let j = 1; j < c; j++) if (logits[j] > logits[best]) best = j;
       if (best === t.y[r]) hit++;

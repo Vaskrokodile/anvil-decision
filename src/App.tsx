@@ -1,6 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { ArrowLeft, ArrowUpRight } from '@phosphor-icons/react';
 import Nav from './components/Nav';
+import ThemeToggle from './components/ThemeToggle';
 import Hero from './components/Hero';
 import Landing from './components/Landing';
 import Footer from './components/Footer';
@@ -38,6 +39,7 @@ function ChromeBar({ label }: { label: string }) {
           />
           {gpu === null ? 'probing…' : gpu.ok ? TIER_LABELS[gpu.tier] : 'no webgpu'}
         </span>
+        <ThemeToggle />
         <a
           href="#/"
           className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.15em] text-dim transition-colors hover:text-fg"

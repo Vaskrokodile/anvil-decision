@@ -1,6 +1,7 @@
 import { ArrowUpRight } from '@phosphor-icons/react';
 import { useGpuReport } from '../lib/useGpu';
 import { TIER_LABELS } from '../data/models';
+import ThemeToggle from './ThemeToggle';
 
 const LINKS: [string, string][] = [
   ['Roster', '#roster'],
@@ -37,6 +38,7 @@ export default function Nav({ onStudio }: { onStudio: () => void }) {
         </nav>
 
         <div className="flex items-center gap-5">
+          <ThemeToggle hero />
           {/* live GPU probe status */}
           <span className="hidden items-center gap-2 rounded-full border border-ice-line px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-widest text-ice-faint lg:flex">
             <span

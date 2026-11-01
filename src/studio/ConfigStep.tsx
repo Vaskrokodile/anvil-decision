@@ -5,7 +5,7 @@ import type { GpuReport } from '../lib/gpu';
 import { fmtBytes } from '../lib/gpu';
 import { analyzeDataset, type Dataset } from '../lib/dataset';
 import { SECTORS } from '../data/sectors';
-import { MODELS, type ModelEntry, type TrainMode } from '../data/models';
+import { type ModelEntry, type TrainMode } from '../data/models';
 import { Tag } from '../components/ui';
 import Step from './Step';
 import type { TrainConfig } from './Studio';
@@ -16,9 +16,8 @@ import { setTrainedHead, inferHead, type TrainedHead } from '../lib/trainedHead'
 import type { FtMsg, FtRequest } from '../lib/xformer/ft.worker';
 import { TASK_MISSING } from '../lib/xformer/ft.worker';
 import { setFtArtifact, inferFt, type FtArtifact } from '../lib/xformer/ft';
-import { MINILM_L6, DEBERTA_V3_SMALL, paramShape, type XformerSpec } from '../lib/xformer/spec';
+import { MINILM_L6, DEBERTA_V3_SMALL, paramShape, poolForArch, type XformerSpec } from '../lib/xformer/spec';
 import { setWorkspaceItem } from '../lib/workspace';
-import { createJobSpec, parseJobSpec } from '../lib/jobSpec';
 import { stratifiedSplit } from '../lib/split';
 import { evaluateRows, type EvalReport } from '../lib/evaluate';
 import {
@@ -77,20 +76,35 @@ function LossCurve({ history }: { history: { loss: number; acc: number }[] }) {
   const max = Math.max(...history.map((p) => p.loss));
   const min = Math.min(...history.map((p) => p.loss));
   const span = Math.max(1e-9, max - min);
+  const x = (i: number) => pad + (i / (history.length - 1)) * (w - 2 * pad);
   const pts = history
-    .map(
-      (p, i) =>
-        `${pad + (i / (history.length - 1)) * (w - 2 * pad)},${pad + (1 - (p.loss - min) / span) * (h - 2 * pad)}`,
-    )
+    .map((p, i) => `${x(i)},${pad + (1 - (p.loss - min) / span) * (h - 2 * pad)}`)
+    .join(' ');
+  const accPts = history
+    .map((p, i) => `${x(i)},${pad + (1 - Math.min(1, Math.max(0, p.acc))) * (h - 2 * pad)}`)
     .join(' ');
   return (
     <svg viewBox={`0 0 ${w} ${h}`} className="h-14 w-full">
+      <polyline
+        points={accPts}
+        fill="none"
+        stroke="var(--color-faint)"
+        strokeWidth="1"
+        strokeDasharray="3 3"
+        strokeLinejoin="round"
+      />
       <polyline
         points={pts}
         fill="none"
         stroke="var(--color-ink)"
         strokeWidth="1.5"
         strokeLinejoin="round"
+      />
+      <circle
+        cx={x(history.length - 1)}
+        cy={pad + (1 - Math.min(1, Math.max(0, history[history.length - 1].acc))) * (h - 2 * pad)}
+        r="2"
+        fill="var(--color-faint)"
       />
     </svg>
   );
@@ -102,8 +116,6 @@ export default function ConfigStep({
   dataset,
   config,
   onConfig,
-  onDataset,
-  onModel,
   onStorageError,
   onTrained,
 }: {
@@ -112,8 +124,6 @@ export default function ConfigStep({
   dataset: Dataset | null;
   config: TrainConfig;
   onConfig: (c: TrainConfig) => void;
-  onDataset: (d: Dataset) => void;
-  onModel: (hf: string | null) => void;
   onStorageError?: (message: string) => void;
   onTrained?: () => void;
 }) {
@@ -138,7 +148,6 @@ export default function ConfigStep({
   const [evalPct, setEvalPct] = useState(0);
   const [evalReport, setEvalReport] = useState<EvalReport | null>(null);
   const reportStorage = onStorageError ?? setTrainErr;
-  const jobInputRef = useRef<HTMLInputElement>(null);
   const workerRef = useRef<Worker | null>(null);
   const runIdRef = useRef(0);
   const cancelRef = useRef<(() => void) | null>(null);
@@ -423,6 +432,7 @@ export default function ConfigStep({
           valN: t.valN,
         })),
         arch,
+        pool: poolForArch(arch),
         mode: config.mode === 'full' ? 'full' : 'lora',
         rank,
         backend: done.backend,
@@ -511,6 +521,7 @@ export default function ConfigStep({
           ? 'cross-encoder/nli-deberta-v3-small'
           : 'sentence-transformers/all-MiniLM-L6-v2',
       arch: ftResult.arch ?? 'minilm',
+      pool: ftResult.pool ?? 'cls',
       labels: ftResult.labels.join('\n'),
       ...(multi
         ? {
@@ -612,44 +623,6 @@ export default function ConfigStep({
     } catch (e) {
       setTrainErr(e instanceof Error ? e.message : String(e));
       setEvalPhase('idle');
-    }
-  };
-
-  const exportSpec = () => {
-    if (!dataset) return;
-    const spec = createJobSpec({
-      targetModel: model,
-      dataset,
-      training: config,
-      rank,
-      textColumn: tCol,
-      labelColumn: lCol,
-    });
-    const bytes = new TextEncoder().encode(JSON.stringify(spec, null, 2));
-    if (bytes.length > 50 * 1024 * 1024) {
-      setTrainErr(
-        `Job bundle is ${(bytes.length / 1024 / 1024).toFixed(0)} MB — it will download, but exceeds the 50 MB re-import limit.`,
-      );
-    }
-    downloadBytes(`anvil-job-${Date.now()}.json`, bytes);
-  };
-
-  const importSpec = async (file: File) => {
-    try {
-      if (file.size > 50 * 1024 * 1024) throw new Error('Job file exceeds the 50 MB import limit.');
-      const spec = parseJobSpec(await file.text());
-      if (spec.targetModel && !MODELS.some((candidate) => candidate.hf === spec.targetModel)) {
-        throw new Error('Job references a model that is not in this Anvil roster.');
-      }
-      onDataset(spec.dataset);
-      onModel(spec.targetModel);
-      onConfig(spec.training);
-      setRank(spec.rank);
-      setTextCol(spec.columns.text);
-      setLabelCol(spec.columns.label);
-      setTrainErr(null);
-    } catch (e) {
-      setTrainErr(e instanceof Error ? e.message : 'Could not import that Anvil job.');
     }
   };
 
@@ -996,7 +969,7 @@ export default function ConfigStep({
                       setTrainedHead(result);
                       onTrained?.();
                     }}
-                    className="flex flex-1 items-center justify-center gap-2 rounded-full bg-ink px-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.15em] text-white transition-opacity hover:opacity-85"
+                    className="flex flex-1 items-center justify-center gap-2 rounded-full bg-ink px-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.15em] text-card transition-opacity hover:opacity-85"
                   >
                     Use in Run →
                   </button>
@@ -1033,7 +1006,7 @@ export default function ConfigStep({
                       setFtArtifact(ftResult);
                       onTrained?.();
                     }}
-                    className="flex flex-1 items-center justify-center gap-2 rounded-full bg-ink px-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.15em] text-white transition-opacity hover:opacity-85"
+                    className="flex flex-1 items-center justify-center gap-2 rounded-full bg-ink px-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.15em] text-card transition-opacity hover:opacity-85"
                   >
                     Use in Run →
                   </button>
@@ -1041,33 +1014,7 @@ export default function ConfigStep({
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={exportSpec}
-                disabled={!dataset}
-                className="flex items-center justify-center gap-2 rounded-full border border-line px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.12em] text-dim transition-colors hover:border-fg hover:text-fg disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <Download size={14} />
-                Export job bundle
-              </button>
-              <button
-                onClick={() => jobInputRef.current?.click()}
-                className="flex items-center justify-center rounded-full border border-line px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.12em] text-dim transition-colors hover:border-fg hover:text-fg"
-              >
-                Import job bundle
-              </button>
-              <input
-                ref={jobInputRef}
-                type="file"
-                accept=".json"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) void importSpec(file);
-                  e.target.value = '';
-                }}
-              />
-            </div>
+
             <p className="flex items-center justify-between pt-1 font-mono text-[10px] text-faint">
               <span>{model ? model.name : 'no roster pick'}</span>
               <span>

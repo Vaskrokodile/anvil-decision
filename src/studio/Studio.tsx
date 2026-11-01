@@ -167,8 +167,6 @@ export default function Studio() {
                 dataset={dataset}
                 config={config}
                 onConfig={setConfig}
-                onDataset={setDataset}
-                onModel={setModelId}
                 onStorageError={setStorageError}
                 onTrained={() => setStep(3)}
               />

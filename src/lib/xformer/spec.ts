@@ -151,6 +151,58 @@ export interface EncoderInit {
   initParams?: Record<string, Float32Array>;
 }
 
+/** How the head reads encoder output. 'mean' matches sentence-transformers
+ *  checkpoints (trained with mean pooling); 'cls' matches DeBERTa-style
+ *  classification heads. */
+export type PoolKind = 'cls' | 'mean';
+
+export const poolForArch = (arch?: 'minilm' | 'deberta'): PoolKind =>
+  arch === 'deberta' ? 'cls' : 'mean';
+
+/** pooled = masked mean of [T,d] hidden (or row 0 for 'cls'). */
+export function poolHidden(
+  hidden: Float32Array,
+  mask: Float32Array,
+  T: number,
+  d: number,
+  pool: PoolKind,
+): Float32Array {
+  if (pool === 'cls') return hidden.slice(0, d);
+  const out = new Float32Array(d);
+  let n = 0;
+  for (let t = 0; t < T; t++) {
+    if (!mask[t]) continue;
+    n++;
+    for (let k = 0; k < d; k++) out[k] += hidden[t * d + k];
+  }
+  const inv = 1 / Math.max(1, n);
+  for (let k = 0; k < d; k++) out[k] *= inv;
+  return out;
+}
+
+/** dL/dpooled → dL/dhidden [T,d]: cls → row 0; mean → mask[t]/n on real tokens. */
+export function poolGrad(
+  dx: Float32Array,
+  mask: Float32Array,
+  T: number,
+  d: number,
+  pool: PoolKind,
+): Float32Array {
+  const hg = new Float32Array(T * d);
+  if (pool === 'cls') {
+    hg.set(dx, 0);
+    return hg;
+  }
+  let n = 0;
+  for (let t = 0; t < T; t++) n += mask[t];
+  const inv = 1 / Math.max(1, n);
+  for (let t = 0; t < T; t++) {
+    if (!mask[t]) continue;
+    for (let k = 0; k < d; k++) hg[t * d + k] = dx[k] * inv;
+  }
+  return hg;
+}
+
 export interface EncoderBackend {
   kind: 'cpu' | 'wgsl';
   init(i: EncoderInit): Promise<void> | void;

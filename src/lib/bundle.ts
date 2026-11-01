@@ -61,9 +61,11 @@ for (const [i, l] of LABELS.entries())
 
 const FT_NOTES = `# anvil-ft artifact
 
-This bundle contains a fine-tuned MiniLM-L6 encoder artifact:
+This bundle contains a fine-tuned encoder artifact:
 
-- \`head.*\` — linear classifier head(s) over the [CLS] row
+- \`head.*\` — linear classifier head(s); MiniLM artifacts pool hidden states
+  with a masked mean (sentence-transformers convention), DeBERTa artifacts use
+  the [CLS] row — see the \`pool\` field in safetensors metadata
 - \`lora.<layer>.<q|k|v|o|f1|f2>.<a|b>\` — LoRA adapters (lora mode)
 - \`encoder.layer.*\`, \`embeddings.LayerNorm.*\` — full-weight deltas (full mode)
 

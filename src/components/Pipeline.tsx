@@ -50,7 +50,7 @@ export default function Pipeline() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-60px' }}
               transition={{ duration: 0.45, delay: i * 0.07 }}
-              className="flex flex-col rounded-2xl border border-line bg-card p-7 transition-colors hover:bg-white"
+              className="flex flex-col rounded-2xl border border-line bg-card p-7 transition-colors hover:bg-line-soft"
             >
               <div className="mb-12 flex items-center justify-between">
                 <span className="font-mono text-[11px] tracking-widest text-faint">

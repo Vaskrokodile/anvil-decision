@@ -3,7 +3,7 @@ import type { EncoderBackend, EncoderInit } from './spec';
 import type { FtArtifact } from './ftArtifact';
 export { ftFromSafetensors } from './ftArtifact';
 export type { FtArtifact } from './ftArtifact';
-import { MINILM_L6, DEBERTA_V3_SMALL } from './spec';
+import { MINILM_L6, DEBERTA_V3_SMALL, poolHidden } from './spec';
 import { loadMiniLMWeights, loadDebertaWeights, DEBERTA_TOKENIZER } from './weights';
 import { CpuEncoder } from './cpu';
 import { DebertaCpuEncoder } from './deberta';
@@ -115,7 +115,8 @@ export async function inferFt(
     mask[t] = Number((e.attention_mask as ArrayLike<number>)[t] ?? 0);
   }
   const hidden = await enc.forward(ids, mask);
-  return headProbs(hidden, a.headW, a.headB, a.labels, spec.dModel);
+  const pooled = poolHidden(hidden, mask, T, spec.dModel, a.pool ?? 'cls');
+  return headProbs(pooled, a.headW, a.headB, a.labels, spec.dModel);
 }
 
 function headProbs(
@@ -172,11 +173,11 @@ export async function inferFtTasks(
     mask[t] = Number((e.attention_mask as ArrayLike<number>)[t] ?? 0);
   }
   const hidden = await enc.forward(ids, mask);
-  const cls = hidden.slice(0, spec.dModel);
+  const pooled = poolHidden(hidden, mask, T, spec.dModel, a.pool ?? 'cls');
   return tasks.map((t) => ({
     name: t.name,
     labels: t.labels,
-    probs: headProbs(cls, t.headW, t.headB, t.labels, spec.dModel),
+    probs: headProbs(pooled, t.headW, t.headB, t.labels, spec.dModel),
   }));
 }
 
