@@ -68,6 +68,10 @@ selection → dataset builder → job spec. Landing + Studio SPA.
   light. The prism's spectrum is the only color on the site.
 - Tokens in `src/index.css` `@theme`: light body = paper/card/line/fg/dim/faint;
   dark hero = abyss/navy + ice/ice-dim/ice-faint/ice-line.
+- Dark mode: `:root[data-theme='dark']` remaps the body tokens (ink → ice);
+  hero-sky tokens stay constant. `src/lib/theme.ts` toggles + persists it —
+  always use the semantic tokens (paper/card/fg/ink), never raw hex, so both
+  themes stay correct.
 - `Tag` tones: solid / ink / line / dim / faint — fill level carries meaning.
   "Over budget" uses hatched `.bar-over`. Cards dark-fill on hover via
   `.card-void`.
