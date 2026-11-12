@@ -240,11 +240,25 @@ function isNode(): boolean {
     ?.node === 'string';
 }
 
-function resolveDevice(device: DecideDevice | undefined): 'webgpu' | 'wasm' | 'cpu' {
+/** `navigator.gpu` can exist without an adapter (headless, blocklisted GPUs). */
+let adapterPresent: Promise<boolean> | null = null;
+
+function webgpuAdapterPresent(): Promise<boolean> {
+  adapterPresent ??= (async () => {
+    if (typeof navigator === 'undefined' || !navigator.gpu) return false;
+    try {
+      return (await navigator.gpu.requestAdapter()) != null;
+    } catch {
+      return false;
+    }
+  })();
+  return adapterPresent;
+}
+
+async function resolveDevice(device: DecideDevice | undefined): Promise<'webgpu' | 'wasm' | 'cpu'> {
   if (device && device !== 'auto') return device;
-  if (typeof navigator !== 'undefined' && 'gpu' in navigator) return 'webgpu';
   if (isNode()) return 'cpu';
-  return 'wasm';
+  return (await webgpuAdapterPresent()) ? 'webgpu' : 'wasm';
 }
 
 async function resolveDtype(
@@ -465,7 +479,7 @@ export async function loadDecide(
   const config = await AutoConfig.from_pretrained(modelId);
   const gliner2 = (config as unknown as { gliner2?: Gliner2Section }).gliner2;
 
-  const device = resolveDevice(opts.device);
+  const device = await resolveDevice(opts.device);
   const dtype = await resolveDtype(opts.dtype, device);
 
   const onProgress = opts.onProgress;

@@ -31,11 +31,25 @@ function isNode(): boolean {
     ?.node === 'string';
 }
 
-function resolveDevice(device: DecoderDevice | undefined): 'webgpu' | 'wasm' | 'cpu' {
+/** `navigator.gpu` can exist without an adapter (headless, blocklisted GPUs). */
+let adapterPresent: Promise<boolean> | null = null;
+
+function webgpuAdapterPresent(): Promise<boolean> {
+  adapterPresent ??= (async () => {
+    if (typeof navigator === 'undefined' || !navigator.gpu) return false;
+    try {
+      return (await navigator.gpu.requestAdapter()) != null;
+    } catch {
+      return false;
+    }
+  })();
+  return adapterPresent;
+}
+
+async function resolveDevice(device: DecoderDevice | undefined): Promise<'webgpu' | 'wasm' | 'cpu'> {
   if (device && device !== 'auto') return device;
-  if (typeof navigator !== 'undefined' && 'gpu' in navigator) return 'webgpu';
   if (isNode()) return 'cpu';
-  return 'wasm';
+  return (await webgpuAdapterPresent()) ? 'webgpu' : 'wasm';
 }
 
 let fp16Support: Promise<boolean> | null = null;
@@ -263,7 +277,7 @@ export async function loadDecoder(
   if (instance && instanceKey === key) return instance;
   if (instance) await instance.dispose().catch(() => undefined);
 
-  const device = resolveDevice(opts.device);
+  const device = await resolveDevice(opts.device);
   const dtype = await resolveDtype(opts.dtype, device);
 
   const onProgress = opts.onProgress;

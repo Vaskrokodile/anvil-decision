@@ -1,11 +1,13 @@
 import type { Dataset } from './dataset';
 import type { FtArtifact } from './xformer/ft';
 import type { TrainedHead } from './trainedHead';
+import type { EvalSet } from './evaluate';
 
 export interface WorkspaceItems {
   dataset: Dataset;
   trainedHead: TrainedHead;
   ftArtifact: FtArtifact;
+  evalSet: EvalSet;
 }
 
 const DB_NAME = 'anvil-workspace';

@@ -42,7 +42,19 @@ export type FtMsg =
   | { type: 'weights'; frac: number }
   | { type: 'tokenizing' }
   | { type: 'parity'; backend: 'cpu' | 'wgsl'; cos: number }
-  | { type: 'epoch'; epoch: number; epochs: number; loss: number; acc: number; backend: string }
+  | {
+      type: 'epoch';
+      /** fractional epoch after this batch — ep + rows seen / rows per epoch */
+      epoch: number;
+      epochs: number;
+      /** 1-based optimizer step just completed, and the planned total */
+      step: number;
+      steps: number;
+      /** this batch's mean loss / accuracy */
+      loss: number;
+      acc: number;
+      backend: string;
+    }
   | {
       type: 'done';
       params: Record<string, Float32Array>;
@@ -63,6 +75,8 @@ export type FtMsg =
         headB: Float32Array;
         valAcc: number | null;
         valN: number;
+        /** held-out row indices into `texts` for this task */
+        valIdx: number[];
       }[];
     }
   | { type: 'error'; message: string };
@@ -234,6 +248,8 @@ async function run(req: FtRequest, post: (m: FtMsg, t?: Transferable[]) => void)
   const BATCH = Math.max(1, Math.min(64, Math.floor(req.batch ?? 8)));
   let lastLoss = 0,
     lastAcc = 0;
+  const steps = req.epochs * Math.ceil(order.length / BATCH);
+  let step = 0;
 
   for (let ep = 0; ep < req.epochs; ep++) {
     for (let k = order.length - 1; k > 0; k--) {
@@ -245,6 +261,9 @@ async function run(req: FtRequest, post: (m: FtMsg, t?: Transferable[]) => void)
       epPreds = 0,
       seen = 0;
     for (let off = 0; off < order.length; off += BATCH) {
+      const bLoss = epLoss,
+        bHit = epHit,
+        bPreds = epPreds;
       const rows = order.slice(off, off + BATCH);
       for (const r of rows) {
         const hidden = await enc.forward(allIds[r], allMask[r]);
@@ -285,25 +304,20 @@ async function run(req: FtRequest, post: (m: FtMsg, t?: Transferable[]) => void)
         t.batchN = 0;
       }
       seen += rows.length;
+      const n = Math.max(1, epPreds - bPreds);
       post({
         type: 'epoch',
         epoch: ep + seen / order.length,
         epochs: req.epochs,
-        loss: epLoss / Math.max(1, epPreds),
-        acc: epHit / Math.max(1, epPreds),
+        step: ++step,
+        steps,
+        loss: (epLoss - bLoss) / n,
+        acc: (epHit - bHit) / n,
         backend: enc.kind,
       });
     }
     lastLoss = epLoss / Math.max(1, epPreds);
     lastAcc = epHit / Math.max(1, epPreds);
-    post({
-      type: 'epoch',
-      epoch: ep + 1,
-      epochs: req.epochs,
-      loss: lastLoss,
-      acc: lastAcc,
-      backend: enc.kind,
-    });
   }
 
   // held-out eval: forward each task's val rows, no grads
@@ -344,15 +358,16 @@ async function run(req: FtRequest, post: (m: FtMsg, t?: Transferable[]) => void)
             headB: t.head.b,
             valAcc: t.valAcc,
             valN: t.valIdx.length,
+            valIdx: t.valIdx,
           })),
         }
       : {}),
   };
   const transfers = [
-    primary.head.w.buffer,
-    primary.head.b.buffer,
-    ...(req.tasks ? tasks.flatMap((t) => [t.head.w.buffer, t.head.b.buffer]) : []),
-    ...Object.values(params).map((p) => p.buffer as ArrayBuffer),
+    ...new Set<ArrayBufferLike>([
+      ...(req.tasks ? tasks : [primary]).flatMap((t) => [t.head.w.buffer, t.head.b.buffer]),
+      ...Object.values(params).map((p) => p.buffer),
+    ]),
   ] as Transferable[];
   post(msg, transfers);
   enc.dispose?.();

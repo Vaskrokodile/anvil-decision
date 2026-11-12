@@ -167,3 +167,121 @@ export async function evaluateRows(args: {
     agreement,
   };
 }
+
+/** Held-out rows of one trained artifact, saved at train time for later comparison. */
+export interface EvalSet {
+  kind: 'ft' | 'head';
+  createdAt: string;
+  tasks: { name: string; labels: string[] }[];
+  /** `gold[k]` is the label index for `tasks[k]`, or -1 when that task did not hold this row out */
+  rows: { text: string; gold: number[] }[];
+}
+
+export interface TaskComparison {
+  name: string;
+  labels: string[];
+  n: number;
+  trained: EngineMetrics & { confusion: number[][]; perClass: PerClass[] };
+  base: EngineMetrics & { confusion: number[][]; perClass: PerClass[] };
+}
+
+export interface ComparisonReport {
+  base: string;
+  rows: number;
+  tasks: TaskComparison[];
+  /** fraction of rows where trained and base agree on the primary task */
+  agreement: number | null;
+  /** rows where either engine missed the primary task, for inspection */
+  misses: {
+    text: string;
+    gold: (string | null)[];
+    trained: (string | null)[];
+    base: (string | null)[];
+  }[];
+}
+
+/**
+ * Scores the trained artifact and a base model on the SAME held-out rows.
+ * `trained` and `base` return one label index (or null) per task; the base
+ * is asked every task in a single JEV-shaped call by the caller.
+ */
+export async function compareSet(args: {
+  set: EvalSet;
+  limit: number;
+  trained: (text: string) => Promise<(number | null)[]>;
+  base: { name: string; run: (text: string) => Promise<(number | null)[]> };
+  onRow?: (done: number, total: number) => void;
+}): Promise<ComparisonReport> {
+  const { set, limit, trained, base, onRow } = args;
+  const rows = set.rows.slice(0, limit);
+  const total = rows.length * 2;
+  let done = 0;
+
+  const tPreds: (number | null)[][] = [];
+  const tMs: number[] = [];
+  for (const row of rows) {
+    const t0 = performance.now();
+    try {
+      tPreds.push(await trained(row.text));
+    } catch {
+      tPreds.push(set.tasks.map(() => null));
+    }
+    tMs.push(performance.now() - t0);
+    onRow?.(++done, total);
+  }
+
+  const bPreds: (number | null)[][] = [];
+  const bMs: number[] = [];
+  for (const row of rows) {
+    const t0 = performance.now();
+    try {
+      bPreds.push(await base.run(row.text));
+    } catch {
+      bPreds.push(set.tasks.map(() => null));
+    }
+    bMs.push(performance.now() - t0);
+    onRow?.(++done, total);
+  }
+
+  const tasks: TaskComparison[] = set.tasks.map((task, k) => {
+    const idx = rows.flatMap((r, i) => (r.gold[k] >= 0 ? [i] : []));
+    const gold = idx.map((i) => rows[i].gold[k]);
+    return {
+      name: task.name,
+      labels: task.labels,
+      n: idx.length,
+      trained: metricsFromPreds(idx.map((i) => tPreds[i][k]), gold, task.labels, idx.map((i) => tMs[i])),
+      base: metricsFromPreds(idx.map((i) => bPreds[i][k]), gold, task.labels, idx.map((i) => bMs[i])),
+    };
+  });
+
+  let agree = 0,
+    both = 0;
+  rows.forEach((_, i) => {
+    const t = tPreds[i][0],
+      b = bPreds[i][0];
+    if (t != null && b != null) {
+      both++;
+      if (t === b) agree++;
+    }
+  });
+
+  const labelOf = (k: number, idx: number | null) => (idx != null && idx >= 0 ? set.tasks[k].labels[idx] ?? null : null);
+  const misses = rows
+    .flatMap((row, i) => (row.gold[0] >= 0 && (tPreds[i][0] !== row.gold[0] || bPreds[i][0] !== row.gold[0]) ? [i] : []))
+    .slice(0, 8)
+    .map((i) => ({
+      text: rows[i].text,
+      gold: set.tasks.map((_, k) => labelOf(k, rows[i].gold[k])),
+      trained: set.tasks.map((_, k) => labelOf(k, tPreds[i][k])),
+      base: set.tasks.map((_, k) => labelOf(k, bPreds[i][k])),
+    }));
+
+  return {
+    base: base.name,
+    rows: rows.length,
+    tasks,
+    agreement: both > 0 ? agree / both : null,
+    misses,
+  };
+}

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'motion/react';
-import { CheckCircle, Download, Play, SpinnerGap } from '@phosphor-icons/react';
+import { ArrowRight, CheckCircle, Download, Play } from '@phosphor-icons/react';
 import type { GpuReport } from '../lib/gpu';
 import { fmtBytes } from '../lib/gpu';
 import { analyzeDataset, type Dataset } from '../lib/dataset';
@@ -12,25 +12,15 @@ import type { TrainConfig } from './Studio';
 import { embedTexts, EMBED_DIM, EMBED_MODEL } from '../lib/embed';
 import type { TrainMsg, TrainRequest } from '../lib/train.worker';
 import { writeSafetensors, downloadBytes } from '../lib/safetensors';
-import { setTrainedHead, inferHead, type TrainedHead } from '../lib/trainedHead';
+import { setTrainedHead, type TrainedHead } from '../lib/trainedHead';
 import type { FtMsg, FtRequest } from '../lib/xformer/ft.worker';
 import { TASK_MISSING } from '../lib/xformer/ft.worker';
-import { setFtArtifact, inferFt, type FtArtifact } from '../lib/xformer/ft';
+import { setFtArtifact, type FtArtifact } from '../lib/xformer/ft';
 import { MINILM_L6, DEBERTA_V3_SMALL, paramShape, poolForArch, type XformerSpec } from '../lib/xformer/spec';
 import { setWorkspaceItem } from '../lib/workspace';
 import { stratifiedSplit } from '../lib/split';
-import { evaluateRows, type EvalReport } from '../lib/evaluate';
-import {
-  RUNNABLE,
-  isJevRunnable,
-  isDecideOnnx,
-  loadJev,
-  type Answer,
-  type Question,
-} from '../lib/jev';
-import { loadDecide } from '../lib/gliner2';
-import { loadDecoder } from '../lib/decoder';
-import { releaseSessions } from '../lib/sessions';
+import type { EvalSet } from '../lib/evaluate';
+import TrainingMonitor, { type TrainPoint } from './TrainingMonitor';
 import { bundleEntries, headCard, ftCard, headBundleExtras, ftBundleExtras } from '../lib/bundle';
 
 function estimateMB(
@@ -67,47 +57,23 @@ const MODE_LABELS: Record<TrainMode, string> = {
 
 const MAX_ROWS = 512;
 
-/** Live-loss sparkline over epoch history. */
-function LossCurve({ history }: { history: { loss: number; acc: number }[] }) {
-  if (history.length < 2) return null;
-  const w = 240,
-    h = 56,
-    pad = 4;
-  const max = Math.max(...history.map((p) => p.loss));
-  const min = Math.min(...history.map((p) => p.loss));
-  const span = Math.max(1e-9, max - min);
-  const x = (i: number) => pad + (i / (history.length - 1)) * (w - 2 * pad);
-  const pts = history
-    .map((p, i) => `${x(i)},${pad + (1 - (p.loss - min) / span) * (h - 2 * pad)}`)
-    .join(' ');
-  const accPts = history
-    .map((p, i) => `${x(i)},${pad + (1 - Math.min(1, Math.max(0, p.acc))) * (h - 2 * pad)}`)
-    .join(' ');
-  return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="h-14 w-full">
-      <polyline
-        points={accPts}
-        fill="none"
-        stroke="var(--color-faint)"
-        strokeWidth="1"
-        strokeDasharray="3 3"
-        strokeLinejoin="round"
-      />
-      <polyline
-        points={pts}
-        fill="none"
-        stroke="var(--color-ink)"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-      />
-      <circle
-        cx={x(history.length - 1)}
-        cy={pad + (1 - Math.min(1, Math.max(0, history[history.length - 1].acc))) * (h - 2 * pad)}
-        r="2"
-        fill="var(--color-faint)"
-      />
-    </svg>
-  );
+/** Held-out rows per task — the saved set the Compare page scores both engines on. */
+function buildEvalSet(
+  kind: 'ft' | 'head',
+  texts: string[],
+  tasks: { name: string; labels: string[]; y: Uint32Array }[],
+  valIdx: number[][],
+): EvalSet {
+  const held = [...new Set(valIdx.flat())].sort((a, b) => a - b);
+  return {
+    kind,
+    createdAt: new Date().toISOString(),
+    tasks: tasks.map(({ name, labels }) => ({ name, labels })),
+    rows: held.map((i) => ({
+      text: texts[i],
+      gold: tasks.map((t, k) => (valIdx[k].includes(i) ? t.y[i] : -1)),
+    })),
+  };
 }
 
 export default function ConfigStep({
@@ -138,15 +104,13 @@ export default function ConfigStep({
   const [embedPct, setEmbedPct] = useState(0);
   const [fetchPct, setFetchPct] = useState(0);
   const [rank, setRank] = useState(8);
-  const [history, setHistory] = useState<{ epoch: number; loss: number; acc: number }[]>([]);
+  const [history, setHistory] = useState<TrainPoint[]>([]);
+  const [totalSteps, setTotalSteps] = useState<number | null>(null);
   const [result, setResult] = useState<TrainedHead | null>(null);
   const [ftResult, setFtResult] = useState<FtArtifact | null>(null);
   const [liveBackend, setLiveBackend] = useState<string | null>(null);
   const [parity, setParity] = useState<{ backend: 'cpu' | 'wgsl'; cos: number } | null>(null);
   const [trainErr, setTrainErr] = useState<string | null>(null);
-  const [evalPhase, setEvalPhase] = useState<'idle' | 'loading' | 'running' | 'done'>('idle');
-  const [evalPct, setEvalPct] = useState(0);
-  const [evalReport, setEvalReport] = useState<EvalReport | null>(null);
   const reportStorage = onStorageError ?? setTrainErr;
   const workerRef = useRef<Worker | null>(null);
   const runIdRef = useRef(0);
@@ -243,10 +207,9 @@ export default function ConfigStep({
     const runId = ++runIdRef.current;
     setTrainErr(null);
     setHistory([]);
+    setTotalSteps(null);
     setResult(null);
     setFtResult(null);
-    setEvalReport(null);
-    setEvalPhase('idle');
     try {
       setPhase('embed');
       setEmbedPct(0);
@@ -267,8 +230,10 @@ export default function ConfigStep({
           cancelRef.current = () => reject(new Error('Training cancelled.'));
           worker.onmessage = (e: MessageEvent<TrainMsg>) => {
             const m = e.data;
-            if (m.type === 'progress')
-              setHistory((h) => [...h, { epoch: m.epoch, loss: m.loss, acc: m.acc }]);
+            if (m.type === 'progress') {
+              setLiveBackend(m.backend);
+              setHistory((h) => [...h, { epoch: m.epoch, loss: m.loss, acc: m.acc, t: performance.now() }]);
+            }
             else if (m.type === 'done') {
               cancelRef.current = null;
               resolve(m);
@@ -324,6 +289,13 @@ export default function ConfigStep({
       void setWorkspaceItem('trainedHead', head).catch(() =>
         reportStorage('Trained for this tab, but local persistence failed. Export before leaving.'),
       );
+      const yHead = Uint32Array.from(trainRows.map((r) => labels.indexOf(r[lCol].trim())));
+      void setWorkspaceItem(
+        'evalSet',
+        buildEvalSet('head', trainRows.map((r) => r[tCol].trim()), [{ name: lCol, labels, y: yHead }], [
+          stratifiedSplit(yHead, 0.2, 1337).val,
+        ]),
+      ).catch(() => reportStorage('Trained, but the held-out rows could not be saved; compare will be unavailable.'));
       setPhase('done');
     } catch (e) {
       if (runId !== runIdRef.current) return;
@@ -341,12 +313,11 @@ export default function ConfigStep({
     const runId = ++runIdRef.current;
     setTrainErr(null);
     setHistory([]);
+    setTotalSteps(null);
     setResult(null);
     setFtResult(null);
     setLiveBackend(null);
     setParity(null);
-    setEvalReport(null);
-    setEvalPhase('idle');
     try {
       const worker = new Worker(
         new URL('../lib/xformer/ft.worker.ts', import.meta.url),
@@ -371,6 +342,7 @@ export default function ConfigStep({
           headB: Float32Array;
           valAcc: number | null;
           valN: number;
+          valIdx: number[];
         }[];
       }>((resolve, reject) => {
         cancelRef.current = () => reject(new Error('Training cancelled.'));
@@ -382,7 +354,8 @@ export default function ConfigStep({
           else if (m.type === 'epoch') {
             setPhase('train');
             setLiveBackend(m.backend);
-            setHistory((h) => [...h, { epoch: m.epoch, loss: m.loss, acc: m.acc }]);
+            setTotalSteps(m.steps);
+            setHistory((h) => [...h, { epoch: m.epoch, loss: m.loss, acc: m.acc, t: performance.now() }]);
           } else if (m.type === 'done') {
             cancelRef.current = null;
             resolve(m);
@@ -450,6 +423,16 @@ export default function ConfigStep({
       void setWorkspaceItem('ftArtifact', artifact).catch(() =>
         reportStorage('Trained for this tab, but local persistence failed. Export before leaving.'),
       );
+      const yPrimary = Uint32Array.from(trainRows.map((r) => labels.indexOf(r[lCol].trim())));
+      void setWorkspaceItem(
+        'evalSet',
+        buildEvalSet(
+          'ft',
+          trainRows.map((r) => r[tCol].trim()),
+          reqTasks ?? [{ name: lCol, labels, y: yPrimary }],
+          done.tasks ? done.tasks.map((t) => t.valIdx) : [stratifiedSplit(yPrimary, 0.2, 1337).val],
+        ),
+      ).catch(() => reportStorage('Trained, but the held-out rows could not be saved; compare will be unavailable.'));
       setPhase('done');
     } catch (e) {
       if (runId !== runIdRef.current) return;
@@ -547,83 +530,6 @@ export default function ConfigStep({
       'anvil-ft-bundle.zip',
       bundleEntries('anvil-ft.safetensors', stBytes, ftCard(ftResult), ftBundleExtras()),
     );
-  };
-
-  const EVAL_ROWS = 24;
-
-  /**
-   * Reproduces the exact held-out split the worker used (same labels array,
-   * valFrac, seed) and scores the trained artifact vs an inference baseline
-   * on rows neither trained on.
-   */
-  const runEval = async () => {
-    const artifact = result ?? ftResult;
-    if (!dataset || !artifact) return;
-    setEvalPhase('loading');
-    setEvalPct(0);
-    setEvalReport(null);
-    setTrainErr(null);
-    try {
-      const y = Uint32Array.from(trainRows.map((r) => labels.indexOf(r[lCol].trim())));
-      const { val } = stratifiedSplit(y, 0.2, 1337);
-      if (val.length === 0) {
-        throw new Error('No held-out rows — the split kept every row in train.');
-      }
-      const evalIdx = val.slice(0, EVAL_ROWS);
-      const texts = evalIdx.map((i) => trainRows[i][tCol].trim());
-      const gold = evalIdx.map((i) => y[i]);
-
-      const trained = result
-        ? (t: string) => inferHead(t, result)
-        : (t: string) => inferFt(t, ftResult!);
-
-      const q = (): Question[] => [
-        {
-          type: 'choice',
-          instructions: 'Assign the single most appropriate label to this text.',
-          options: labels,
-        },
-      ];
-      let baseline: { name: string; run: (t: string) => Promise<Answer> };
-      if (model?.arch === 'decoder-lm' && model.runtime !== 'planned') {
-        const repo = model.onnx ?? model.hf;
-        await releaseSessions('decoder');
-        const s = await loadDecoder(repo);
-        baseline = {
-          name: `${model.name} · generated`,
-          run: async (t) => (await s.decide(t, q()))[0],
-        };
-      } else {
-        const repo = isJevRunnable(model?.onnx) ? (model!.onnx as string) : RUNNABLE[0].id;
-        if (isDecideOnnx(repo)) {
-          await releaseSessions('decide');
-          const s = await loadDecide(repo);
-          baseline = {
-            name: 'GLiNER2.5 Decide',
-            run: async (t) => (await s.decide(t, q()))[0],
-          };
-        } else {
-          await releaseSessions('jev');
-          const j = await loadJev(repo);
-          baseline = { name: repo, run: async (t) => (await j.decide(t, q()))[0] };
-        }
-      }
-
-      setEvalPhase('running');
-      const rep = await evaluateRows({
-        texts,
-        gold,
-        labels,
-        trained,
-        baseline,
-        onRow: (d, t) => setEvalPct(d / t),
-      });
-      setEvalReport(rep);
-      setEvalPhase('done');
-    } catch (e) {
-      setTrainErr(e instanceof Error ? e.message : String(e));
-      setEvalPhase('idle');
-    }
   };
 
   return (
@@ -865,25 +771,7 @@ export default function ConfigStep({
                 — {trainRows.length} rows ·{' '}
                 {reqTasks ? `${reqTasks.length} tasks` : `${labels.length} classes`} · 80/20 split
               </button>
-            ) : phase === 'embed' ? (
-              <div className="rounded-full border border-line px-4 py-3 font-mono text-[11px] uppercase tracking-[0.15em] text-dim">
-                embedding… {Math.round(embedPct * 100)}%
-              </div>
-            ) : phase === 'fetch' ? (
-              <div className="rounded-full border border-line px-4 py-3 font-mono text-[11px] uppercase tracking-[0.15em] text-dim">
-                fetching weights… {Math.round(fetchPct * 100)}%
-              </div>
-            ) : phase === 'tok' ? (
-              <div className="rounded-full border border-line px-4 py-3 font-mono text-[11px] uppercase tracking-[0.15em] text-dim">
-                tokenizing…
-              </div>
-            ) : (
-              <div className="flex items-center justify-center gap-2 rounded-full border border-ink/60 bg-ink-dim px-4 py-3 font-mono text-[11px] uppercase tracking-[0.15em] text-ink">
-                <SpinnerGap size={13} className="animate-spin" />
-                training{liveBackend ? ` · ${liveBackend}` : ''} · epoch{' '}
-                {Math.ceil(history[history.length - 1]?.epoch ?? 0)}/{config.epochs}
-              </div>
-            )}
+            ) : null}
             {busy && (
               <button
                 onClick={cancelTraining}
@@ -891,16 +779,6 @@ export default function ConfigStep({
               >
                 Cancel training
               </button>
-            )}
-
-            {history.length > 0 && (
-              <div className="rounded-xl border border-line bg-paper p-3">
-                <div className="mb-1 flex items-center justify-between font-mono text-[10px] text-faint">
-                  <span>train loss {history[history.length - 1].loss.toFixed(3)}</span>
-                  <span>train acc {(history[history.length - 1].acc * 100).toFixed(0)}%</span>
-                </div>
-                <LossCurve history={history} />
-              </div>
             )}
 
             {parity && (
@@ -923,22 +801,29 @@ export default function ConfigStep({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.35 }}
                 role="status"
-                className="flex items-center gap-3 rounded-xl border border-ink/30 bg-ink px-4 py-3 text-card"
+                className="flex flex-wrap items-center gap-3 rounded-xl border border-ink/30 bg-ink px-4 py-3 text-card"
               >
                 <CheckCircle size={18} weight="fill" className="shrink-0" />
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <p className="font-mono text-[11px] uppercase tracking-[0.15em]">
                     Training complete
                   </p>
-                  <p className="mt-0.5 truncate font-mono text-[10px] tracking-wide text-card/60">
+                  <p className="mt-0.5 font-mono text-[10px] tracking-wide text-card/60">
                     {(result ?? ftResult)!.backend} ·{' '}
                     {result ? 'head' : ftResult!.mode} ·{' '}
                     {(result ?? ftResult)!.valAcc != null
                       ? `val ${((result ?? ftResult)!.valAcc! * 100).toFixed(0)}% on held-out rows`
                       : 'no val split'}{' '}
-                    — saved locally · export or open in Run
+                    — saved locally
                   </p>
                 </div>
+                <a
+                  href="#/compare"
+                  className="flex shrink-0 items-center gap-2 rounded-full bg-card px-4 py-2 font-mono text-[10px] uppercase tracking-[0.15em] text-ink transition-opacity hover:opacity-85"
+                >
+                  Compare vs base
+                  <ArrowRight size={12} />
+                </a>
               </motion.div>
             )}
 
@@ -1026,164 +911,18 @@ export default function ConfigStep({
         </div>
       </div>
 
-      {/* held-out eval: trained artifact vs inference baseline on the same rows */}
-      {phase === 'done' && (result || ftResult) && !(ftResult?.tasks && ftResult.tasks.length > 1) && (
-        <div className="mt-3 rounded-2xl border border-line bg-card p-5">
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-faint">
-                held-out eval
-              </p>
-              <p className="mt-1 text-[13px] leading-relaxed text-dim">
-                Score the trained artifact and an inference baseline on up to {EVAL_ROWS} rows the
-                trainer never saw — same seed, same split.
-              </p>
-            </div>
-            <button
-              onClick={runEval}
-              disabled={evalPhase === 'loading' || evalPhase === 'running'}
-              className="flex items-center gap-2 rounded-full bg-fg px-5 py-2.5 font-mono text-[11px] uppercase tracking-[0.15em] text-card transition-opacity hover:opacity-85 disabled:opacity-40"
-            >
-              {evalPhase === 'loading' ? (
-                'loading baseline…'
-              ) : evalPhase === 'running' ? (
-                `evaluating… ${Math.round(evalPct * 100)}%`
-              ) : (
-                <>
-                  <Play size={13} weight="fill" />
-                  {evalPhase === 'done' ? 'Re-run eval' : 'Evaluate'}
-                </>
-              )}
-            </button>
-          </div>
-
-          {evalReport && (
-            <div className="grid gap-3 lg:grid-cols-5">
-              {/* side-by-side metrics */}
-              <div className="rounded-xl border border-line bg-paper p-4 lg:col-span-2">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-faint">
-                      trained · {result ? 'head' : ftResult!.mode}
-                    </p>
-                    <p className="font-display text-3xl text-fg">
-                      {(evalReport.trained.acc * 100).toFixed(0)}%
-                    </p>
-                    <p className="mt-1 font-mono text-[10px] text-dim">
-                      f1 {evalReport.trained.macroF1.toFixed(2)} ·{' '}
-                      {evalReport.trained.ms.toFixed(0)} ms/row
-                    </p>
-                  </div>
-                  <div>
-                    <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-faint">
-                      baseline
-                    </p>
-                    {evalReport.baseline ? (
-                      <>
-                        <p className="font-display text-3xl text-fg">
-                          {(evalReport.baseline.acc * 100).toFixed(0)}%
-                        </p>
-                        <p className="mt-1 font-mono text-[10px] text-dim">
-                          f1 {evalReport.baseline.macroF1.toFixed(2)} ·{' '}
-                          {evalReport.baseline.ms.toFixed(0)} ms/row
-                        </p>
-                        <p className="mt-1 truncate font-mono text-[10px] text-faint">
-                          {evalReport.baseline.name}
-                          {evalReport.baseline.answered < evalReport.rows &&
-                            ` · ${evalReport.rows - evalReport.baseline.answered} unparsed`}
-                        </p>
-                      </>
-                    ) : (
-                      <p className="font-mono text-[11px] text-faint">no baseline run</p>
-                    )}
-                  </div>
-                </div>
-                {evalReport.agreement != null && (
-                  <p className="mt-3 border-t border-line-soft pt-3 font-mono text-[10px] text-dim">
-                    engines agree on {(evalReport.agreement * 100).toFixed(0)}% of{' '}
-                    {evalReport.rows} rows
-                  </p>
-                )}
-
-                {/* per-class table */}
-                <table className="mt-3 w-full border-t border-line-soft font-mono text-[10.5px]">
-                  <thead>
-                    <tr className="text-left text-faint">
-                      <th className="py-1.5 pr-2 font-normal">label</th>
-                      <th className="py-1.5 pr-2 text-right font-normal">p</th>
-                      <th className="py-1.5 pr-2 text-right font-normal">r</th>
-                      <th className="py-1.5 pr-2 text-right font-normal">f1</th>
-                      <th className="py-1.5 text-right font-normal">n</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {evalReport.trained.perClass.map((pc) => (
-                      <tr key={pc.label} className="border-t border-line-soft text-dim">
-                        <td className="max-w-[10rem] truncate py-1.5 pr-2 text-fg">{pc.label}</td>
-                        <td className="py-1.5 pr-2 text-right">{pc.precision.toFixed(2)}</td>
-                        <td className="py-1.5 pr-2 text-right">{pc.recall.toFixed(2)}</td>
-                        <td className="py-1.5 pr-2 text-right">{pc.f1.toFixed(2)}</td>
-                        <td className="py-1.5 text-right">{pc.support}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* confusion matrix */}
-              <div className="rounded-xl border border-line bg-paper p-4 lg:col-span-3">
-                <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-faint">
-                  confusion · trained — rows true, cols predicted
-                </p>
-                <div className="overflow-x-auto">
-                  <table className="border-collapse font-mono text-[10px]">
-                    <thead>
-                      <tr>
-                        <th className="p-1" />
-                        {evalReport.labels.map((l) => (
-                          <th key={l} className="max-w-[5rem] truncate p-1 font-normal text-faint">
-                            {l}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {evalReport.trained.confusion.map((row, i) => {
-                        const max = Math.max(1, ...row);
-                        return (
-                          <tr key={i}>
-                            <th className="max-w-[7rem] truncate p-1 text-left font-normal text-faint">
-                              {evalReport.labels[i]}
-                            </th>
-                            {row.map((n, j) => (
-                              <td
-                                key={j}
-                                className={`h-8 w-10 border border-line-soft p-1 text-center ${
-                                  i === j ? 'text-fg' : 'text-dim'
-                                }`}
-                                style={
-                                  n > 0
-                                    ? {
-                                        backgroundColor: `color-mix(in srgb, var(--color-ink) ${Math.round(
-                                          (n / max) * (i === j ? 85 : 45),
-                                        )}%, transparent)`,
-                                        color: n / max > 0.5 ? 'var(--color-card)' : undefined,
-                                      }
-                                    : undefined
-                                }
-                              >
-                                {n || ''}
-                              </td>
-                            ))}
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          )}
+      {phase !== 'idle' && (busy || history.length > 0) && (
+        <div className="mt-3">
+          <TrainingMonitor
+            mode={config.mode === 'head' ? 'head' : 'ft'}
+            phase={phase}
+            embedPct={embedPct}
+            fetchPct={fetchPct}
+            points={history}
+            epochs={config.epochs}
+            steps={totalSteps}
+            backend={liveBackend}
+          />
         </div>
       )}
     </Step>

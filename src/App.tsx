@@ -10,12 +10,13 @@ import { TIER_LABELS } from './data/models';
 
 const Studio = lazy(() => import('./studio/Studio'));
 const BenchPage = lazy(() => import('./bench/BenchPage'));
+const ComparePage = lazy(() => import('./compare/ComparePage'));
 
-type Route = '/' | '/studio' | '/bench';
+type Route = '/' | '/studio' | '/bench' | '/compare';
 
 function routeFromHash(): Route {
   const h = location.hash.replace('#', '');
-  return h === '/studio' ? '/studio' : h === '/bench' ? '/bench' : '/';
+  return h === '/studio' ? '/studio' : h === '/bench' ? '/bench' : h === '/compare' ? '/compare' : '/';
 }
 
 /** Minimal light-theme top bar for inner routes (Nav is hero-styled/dark). */
@@ -73,12 +74,13 @@ export default function App() {
     location.hash = '/studio';
   }, []);
 
-  if (route === '/studio' || route === '/bench') {
+  if (route !== '/') {
+    const inner = { '/studio': 'studio', '/bench': 'bench', '/compare': 'compare' }[route];
     return (
       <div className="min-h-svh bg-paper text-fg">
-        <ChromeBar label={route === '/studio' ? 'studio' : 'bench'} />
+        <ChromeBar label={inner} />
         <Suspense fallback={<div className="min-h-svh" />}>
-          {route === '/studio' ? <Studio /> : <BenchPage />}
+          {route === '/studio' ? <Studio /> : route === '/bench' ? <BenchPage /> : <ComparePage />}
         </Suspense>
         <Footer />
       </div>
