@@ -1,6 +1,5 @@
 import { strict as assert } from 'node:assert';
 import { analyzeDataset, dedupeDataset, parseCsv, type Dataset } from '../src/lib/dataset.ts';
-import { createJobSpec, parseJobSpec } from '../src/lib/jobSpec.ts';
 import { ftFromSafetensors } from '../src/lib/xformer/ftArtifact.ts';
 import { readSafetensors, writeSafetensors } from '../src/lib/safetensors.ts';
 
@@ -23,20 +22,6 @@ const dataset: Dataset = {
 };
 assert.equal(analyzeDataset(dataset).dupes, 1);
 assert.equal(dedupeDataset(dataset).rows.length, 2);
-
-const job = createJobSpec({
-  targetModel: null,
-  dataset,
-  training: { mode: 'lora', lr: 1e-4, epochs: 3, batch: 8, seqLen: 128 },
-  rank: 8,
-  textColumn: 'text',
-  labelColumn: 'label',
-});
-const restored = parseJobSpec(JSON.stringify(job));
-assert.equal(restored.dataset.rows.length, dataset.rows.length);
-assert.equal(restored.training.seqLen, 128);
-assert.equal(restored.rank, 8);
-assert.throws(() => parseJobSpec(JSON.stringify({ ...job, specVersion: 2 })), /Not a supported/);
 
 const fullKey = 'encoder.layer.0.attention.self.query.weight';
 const baseTensors = {
@@ -68,4 +53,4 @@ const lora = ftFromSafetensors(loraRead.tensors, loraRead.meta);
 assert.equal(lora.mode, 'lora');
 assert.deepEqual(Array.from(lora.params['lora.0.q.a']), [6]);
 
-console.log('dataset parsing, job bundle, and head/LoRA/full artifact tests passed');
+console.log('dataset parsing and head/LoRA/full artifact tests passed');

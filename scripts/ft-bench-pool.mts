@@ -12,10 +12,10 @@ import { MINILM_L6 } from '../src/lib/xformer/spec.ts';
 import { softmaxCE } from '../src/lib/head.ts';
 import { mulberry, stratifiedSplit } from '../src/lib/split.ts';
 
-const T = 64;
+const T = Number(process.env.BENCH_T ?? 48);
 const D = MINILM_L6.dModel;
-const LR = 5e-3;
-const EPOCHS = 4;
+const LR_MUT = [5e-3];
+const EPOCHS = Number(process.env.BENCH_EPOCHS ?? 3);
 const RANK = 8;
 const SEED = 1337;
 
@@ -23,6 +23,7 @@ const SEED = 1337;
 const rows = readFileSync('public/datasets/emotion.jsonl', 'utf8')
   .split('\n')
   .filter(Boolean)
+  .slice(0, Number(process.env.BENCH_ROWS ?? 300))
   .map((l) => JSON.parse(l) as { text: string; label: string });
 const labelSet = [...new Set(rows.map((r) => r.label))];
 const y = Uint32Array.from(rows.map((r) => labelSet.indexOf(r.label)));
@@ -116,8 +117,11 @@ const poolGrad = (dx: Float32Array, mask: Float32Array, mean: boolean): Float32A
   return hg;
 };
 
-async function run(meanPool: boolean, seqs: { ids: Uint32Array; mask: Float32Array }[]) {
-  const weights = await loadMiniLMWeights();
+async function run(
+  meanPool: boolean,
+  seqs: { ids: Uint32Array; mask: Float32Array }[],
+  weights: Record<string, Float32Array>,
+) {
   const enc = new CpuEncoder();
   enc.init({ spec: MINILM_L6, weights, mode: 'lora', rank: RANK, seed: SEED, maxSeq: T });
   const rng = mulberry(SEED);
@@ -148,8 +152,8 @@ async function run(meanPool: boolean, seqs: { ids: Uint32Array; mask: Float32Arr
         const dx = head.backward(x, dz);
         await enc.backward(poolGrad(dx, seqs[r].mask, meanPool));
       }
-      await enc.applyGrads(LR, batch.length);
-      head.apply(LR, batch.length);
+      await enc.applyGrads(LR_MUT[0], batch.length);
+      head.apply(LR_MUT[0], batch.length);
     }
     // held-out
     let vhit = 0;
@@ -184,8 +188,14 @@ for (const r of rows) {
     mask: Float32Array.from((e.attention_mask as number[]).map(Number)),
   });
 }
-console.log('tokenized; training cls run…');
-const clsAcc = await run(false, seqs);
-console.log('training mean-pool run…');
-const meanAcc = await run(true, seqs);
-console.log(`\nRESULT  cls valAcc ${(clsAcc * 100).toFixed(1)}%   mean valAcc ${(meanAcc * 100).toFixed(1)}%`);
+console.log('tokenized; loading weights…');
+const weights = await loadMiniLMWeights();
+for (const lr of (process.env.BENCH_LRS ?? '1e-4,5e-4').split(',').map(Number)) {
+  console.log(`--- lr ${lr} ---`);
+  LR_MUT[0] = lr;
+  const pools = process.env.BENCH_POOLS ?? 'cls,mean';
+  for (const mean of (pools === 'cls' ? [false] : pools === 'mean' ? [true] : [false, true])) {
+    const acc = await run(mean, seqs, weights);
+    console.log(`RESULT lr=${lr}  ${mean ? 'mean' : 'cls'} valAcc ${(acc * 100).toFixed(1)}%`);
+  }
+}
