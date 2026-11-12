@@ -29,15 +29,16 @@ export default function Hero({ onStudio }: { onStudio: () => void }) {
   ];
 
   return (
-    <section className="relative min-h-svh overflow-hidden bg-abyss text-ice">
+    <section className="relative isolate min-h-svh overflow-hidden bg-abyss text-ice">
       {/* moonlit dome — also the fallback if WebGL can't start */}
       <div className="aurora-sky absolute inset-0" aria-hidden="true" />
       <div className="aurora-dome absolute inset-0" aria-hidden="true" />
       <div className="planet absolute inset-0" aria-hidden="true" />
+      <div className="liquid-glass absolute inset-0" aria-hidden="true" />
 
-      {/* the prism — beam enters low-left, drags to aim */}
+      {/* the prism — beam loops through it on its own; screen blend drops the canvas background so the glass shows */}
       {!reduce && (
-        <div className="absolute inset-x-0 top-[16%] bottom-0">
+        <div className="absolute inset-x-0 top-[16%] bottom-0 mix-blend-screen">
           <Suspense fallback={null}>
             <VPrism />
           </Suspense>

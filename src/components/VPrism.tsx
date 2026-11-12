@@ -585,66 +585,7 @@ export function VPrism({ settings, className = '' }: VPrismProps) {
       }
     }
 
-    // Aim beam at prism from pointer coords (Wh + D)
-    function aimRayAt(clientX: number, clientY: number) {
-      const rect = container?.getBoundingClientRect();
-      if (!rect) return;
-
-      const Q = getZoomScale(width);
-      const N = 0;
-      const K = width <= MOBILE_BREAKPOINT ? -0.5 : 0;
-
-      const relX = clientX - rect.left;
-      const relY = clientY - rect.top;
-      const re = (relX - width / 2) / Q;
-      const ve = (height / 2 - relY) / Q;
-
-      let W = N - re;
-      let Le = K - ve;
-      const hyp = Math.hypot(W, Le);
-      if (hyp < 0.01) return;
-      W /= hyp;
-      Le /= hyp;
-
-      const start: [number, number, number] = [N - W * 10, K - Le * 10, 0];
-      const end: [number, number, number] = [N, K, 0];
-      setRay(start, end);
-    }
-
-    // --- POINTER INTERACTIONS (RAF-throttled for zero mouse jank) ---
-    // Hover aims the beam — no click required. lastAimAt feeds the idle
-    // autopilot: if the beam hasn't been steered for a few seconds it drifts
-    // on its own so the spectrum blooms on touch devices and first load.
-    let isPointerDown = false;
-    let pendingPointerX: number | null = null;
-    let pendingPointerY: number | null = null;
-    let lastAimAt = -10;
     let elapsedTime = 0;
-
-    const handlePointerDown = (e: PointerEvent) => {
-      if (e.button !== 0 || !e.isPrimary) return;
-      isPointerDown = true;
-      container.setPointerCapture(e.pointerId);
-      aimRayAt(e.clientX, e.clientY);
-      lastAimAt = elapsedTime;
-    };
-
-    const handlePointerMove = (e: PointerEvent) => {
-      pendingPointerX = e.clientX;
-      pendingPointerY = e.clientY;
-    };
-
-    const handlePointerUp = () => {
-      isPointerDown = false;
-      pendingPointerX = null;
-      pendingPointerY = null;
-    };
-
-    container.addEventListener('pointerdown', handlePointerDown);
-    container.addEventListener('pointermove', handlePointerMove);
-    container.addEventListener('pointerup', handlePointerUp);
-    container.addEventListener('pointercancel', handlePointerUp);
-    container.addEventListener('pointerleave', handlePointerUp);
 
     // --- RESIZE HANDLER ---
     const handleResize = () => {
@@ -681,24 +622,12 @@ export function VPrism({ settings, className = '' }: VPrismProps) {
     const animate = (currentTime: number) => {
       animId = requestAnimationFrame(animate);
 
-      // Process throttled pointer updates
-      if (pendingPointerX !== null && pendingPointerY !== null) {
-        aimRayAt(pendingPointerX, pendingPointerY);
-        lastAimAt = elapsedTime;
-        pendingPointerX = null;
-        pendingPointerY = null;
-      } else if (elapsedTime - lastAimAt > 4 && !isPointerDown) {
-        // idle autopilot — beam sways slowly through the prism so the
-        // spectrum flares on a slow cycle without any user input
-        const th = elapsedTime * 0.22;
-        const px = Math.sin(th) * 2.6;
-        const py = Math.sin(th * 1.7) * 0.9 - 0.15;
-        setRay([-10 + px, py - 0.05, 0], [0, 0, 0]);
-      }
-
       const delta = Math.min((currentTime - prevTime) / 1000, 0.1);
       prevTime = currentTime;
       elapsedTime += delta;
+
+      const th = elapsedTime * 0.22;
+      setRay([-10 + Math.sin(th) * 2.6, Math.sin(th * 2) * 0.9 - 0.2, 0], [0, 0, 0]);
 
       // Update rainbow speed and emissive intensity
       const curSettings = settingsRef.current;
@@ -766,11 +695,6 @@ export function VPrism({ settings, className = '' }: VPrismProps) {
       cancelAnimationFrame(animId);
       resizeObserver.disconnect();
       window.removeEventListener('resize', handleResize);
-      container.removeEventListener('pointerdown', handlePointerDown);
-      container.removeEventListener('pointermove', handlePointerMove);
-      container.removeEventListener('pointerup', handlePointerUp);
-      container.removeEventListener('pointercancel', handlePointerUp);
-      container.removeEventListener('pointerleave', handlePointerUp);
 
       composer.dispose();
       cubeRT?.dispose();
@@ -790,9 +714,9 @@ export function VPrism({ settings, className = '' }: VPrismProps) {
   return (
     <div
       ref={containerRef}
-      className={`relative h-full w-full overflow-hidden select-none touch-none ${className}`}
+      className={`relative h-full w-full overflow-hidden select-none ${className}`}
     >
-      <canvas ref={canvasRef} aria-label="Interactive glass prism with a movable light beam" className="h-full w-full block" />
+      <canvas ref={canvasRef} aria-label="Glass prism with a looping light beam" className="h-full w-full block" />
     </div>
   );
 }
